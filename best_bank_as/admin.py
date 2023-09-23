@@ -5,7 +5,7 @@ from best_bank_as.models.account_type import AccountType
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.customer_level import CustomerLevel
 from best_bank_as.models.ledger import Ledger
-from best_bank_as.models.transaction_table import Transaction
+from best_bank_as.models.transaction import Transaction
 
 # Register your models here.
 
