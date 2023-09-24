@@ -1,8 +1,9 @@
 from django.db import models
 
+from best_bank_as.models.core import base_model
 
-class Transaction(models.Model):
-    """Model for transactions."""
 
-    transaction_id = models.AutoField(primary_key=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+class Transaction(base_model.BaseModel):
+    """Model for transactions"""
+
+    ...
