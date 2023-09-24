@@ -1,6 +1,7 @@
 from django.db import models
-from best_bank_as.models.customer import Customer
+
 from best_bank_as.models.account_type import AccountType
+from best_bank_as.models.customer import Customer
 
 
 class Account(models.Model):

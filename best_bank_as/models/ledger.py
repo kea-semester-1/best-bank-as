@@ -1,4 +1,5 @@
 from django.db import models
+
 from best_bank_as.models.account import Account
 from best_bank_as.models.transaction import Transaction
 
