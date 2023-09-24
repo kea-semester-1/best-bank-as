@@ -19,7 +19,6 @@ jobs:
       run: poetry run black --check .
 
   ruff:
-    name: Setup Ruff
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
