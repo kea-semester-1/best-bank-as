@@ -6,7 +6,7 @@ from best_bank_as.models.transaction import Transaction
 
 
 class Ledger(base_model.BaseModel):
-    """Model for ledger"""
+    """Model for ledger."""
 
     transaction_id = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     account_number = models.ForeignKey(Account, on_delete=models.CASCADE)
