@@ -1,7 +1,8 @@
-from django.db import models
 from django.contrib.auth.models import User
-from best_bank_as.models.customer_level import CustomerLevel
+from django.db import models
+
 from best_bank_as.models.core import base_model
+from best_bank_as.models.customer_level import CustomerLevel
 
 
 class Customer(base_model.BaseModel):

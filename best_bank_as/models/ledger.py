@@ -1,11 +1,12 @@
 from django.db import models
+
 from best_bank_as.models.account import Account
-from best_bank_as.models.transaction import Transaction
 from best_bank_as.models.core import base_model
+from best_bank_as.models.transaction import Transaction
 
 
 class Ledger(base_model.BaseModel):
-    """Model for ledger"""
+    """Model for ledger."""
 
     transaction_id = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     account_number = models.ForeignKey(Account, on_delete=models.CASCADE)

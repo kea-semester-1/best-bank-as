@@ -1,5 +1,6 @@
-from best_bank_as.models.core import base_model
 from django.db import models
+
+from best_bank_as.models.core import base_model
 
 
 class AccountType(base_model.BaseModel):
