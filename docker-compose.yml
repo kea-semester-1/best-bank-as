@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  web:
+    container_name: web
+    build:
+      context: .
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    networks:
+    - best_bank_as_network
+    env_file: .env
+    volumes:
+      - .:/app
+    restart: always
+
+networks:
+  best_bank_as_network:
+    name: best_bank_as_network
