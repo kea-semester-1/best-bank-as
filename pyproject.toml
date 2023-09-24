@@ -4,7 +4,6 @@ version = "0.1.0"
 description = ""
 authors = ["martinlaursen97 <martin_laursen21@hotmail.com>"]
 readme = "README.md"
-packages = [{ include = "best_bank_as" }]
 
 [tool.poetry.dependencies]
 python = "^3.11"
