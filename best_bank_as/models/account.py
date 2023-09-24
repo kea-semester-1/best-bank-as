@@ -5,7 +5,7 @@ from best_bank_as.models.customer import Customer
 
 
 class Account(models.Model):
-    """Model for account"""
+    """Model for account."""
 
     account_id = models.AutoField(primary_key=True)
     account_number = models.IntegerField(unique=True)

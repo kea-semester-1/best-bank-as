@@ -5,7 +5,7 @@ from best_bank_as.models.transaction import Transaction
 
 
 class Ledger(models.Model):
-    """Model for ledger"""
+    """Model for ledger."""
 
     ledger_id = models.AutoField(primary_key=True)
     transaction_id = models.ForeignKey(Transaction, on_delete=models.CASCADE)

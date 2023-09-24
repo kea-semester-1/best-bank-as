@@ -6,6 +6,8 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+    """Initial migration for best_bank_as."""
+
     initial = True
 
     dependencies = [

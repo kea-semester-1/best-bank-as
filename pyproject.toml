@@ -21,12 +21,15 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 select = [
-    "A",   # prevent using keywords that clobber python builtins
-    "B",   # bugbear: security warnings
-    "E",   # pycodestyle
-    "F",   # pyflakes
-    "ISC", # implicit string concatenation
-    "UP",  # alert you when better syntax is available in your python version
+    "A",    # prevent using keywords that clobber python builtins
+    "B",    # bugbear: security warnings
+    "E",    # pycodestyle
+    "F",    # pyflakes
+    "ISC",  # implicit string concatenation
+    "UP",   # alert you when better syntax is available in your python version
+    "D101", # class docstring conventions
+    "D103", # function docstring conventions
+    "D400", # first line should end with a period
 ]
 target-version = "py311"
 ignore = []
@@ -103,6 +106,8 @@ exclude = [
     "node_modules",
     "venv",
     "settings.py",
+    "migrations",
+    "__init__.py",
 
 ] # Exclude a variety of commonly ignored directories.
 
