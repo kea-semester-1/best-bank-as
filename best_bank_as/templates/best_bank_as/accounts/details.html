@@ -1,0 +1,30 @@
+{% block content %}
+<h3>Details for Account {{ account.account_number }}</h3>
+
+{% if transactions %}
+    <table border="3">
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Counterpart Account Number</th>
+                <th>Amount</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction_id, entries in transactions.items %}
+                {% for entry in entries %}
+                    <tr>
+                        <td>{{ transaction_id }}</td>
+                        <td>{{ entry.account_number }}</td>
+                        <td>{{ entry.amount }}</td>
+                        <td>{{ entry.created_at|date:"d M Y H:i" }}</td>
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No transactions available.</p>
+{% endif %}
+{% endblock %}

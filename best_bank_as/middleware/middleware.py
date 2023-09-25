@@ -3,7 +3,8 @@ from django.shortcuts import render
 
 
 class NotFoundMiddleware:
-    """ Middleware to prevent standard error page."""
+    """Middleware to prevent standard error page."""
+
     def __init__(self, get_response):
         self.get_response = get_response
 
