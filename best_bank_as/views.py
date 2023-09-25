@@ -39,14 +39,18 @@ def get_accounts(request: HttpRequest, pk: int) -> HttpResponse:
     context = {"accounts": accounts}
     return render(request, "best_bank_as/accounts/accounts.html", context)
 
+
 @login_required
 def get_details(request: HttpRequest, pk: int) -> HttpResponse:
-    """ Retrieve information for a given account. """
+    """Retrieve information for a given account."""
     account = get_object_or_404(Account, pk=pk)
 
     # Find all movements for the given account
-    movements = Ledger.objects.filter(account_number_id = pk).select_related('account_number').order_by(
-        'transaction_id_id', 'created_at')
+    movements = (
+        Ledger.objects.filter(account_number_id=pk)
+        .select_related("account_number")
+        .order_by("transaction_id_id", "created_at")
+    )
 
     # Create a dictionary to hold the data.
     transactions = defaultdict(list)
@@ -54,20 +58,23 @@ def get_details(request: HttpRequest, pk: int) -> HttpResponse:
     # Loop over each movement.
     for movement in movements:
         # Retrieve the counterpart movements for each transaction.
-        counterpart_movements = Ledger.objects.filter(transaction_id_id = movement.transaction_id_id).exclude(
-            account_number_id = pk).select_related('account_number')
-    
-        # Loop over each counterpart movement and append it to the transactions dictionary.
-        for counterpart in counterpart_movements:
-            transactions[movement.transaction_id_id].append({
-                'amount': counterpart.amount,
-                'created_at': counterpart.created_at,
-                'account_number': counterpart.account_number.account_number,  # Counterpart Account Number
-            })
+        counterpart_movements = (
+            Ledger.objects.filter(transaction_id_id=movement.transaction_id_id)
+            .exclude(account_number_id=pk)
+            .select_related("account_number")
+        )
 
-    context = {
-        "account": account,
-        "transactions": dict(transactions)
-    }
-    
+        # Loop over each counterpart movement
+        # and append it to the transactions dictionary.
+        for counterpart in counterpart_movements:
+            transactions[movement.transaction_id_id].append(
+                {
+                    "amount": counterpart.amount,
+                    "created_at": counterpart.created_at,
+                    "account_number": counterpart.account_number.account_number,
+                }
+            )
+
+    context = {"account": account, "transactions": dict(transactions)}
+
     return render(request, "best_bank_as/accounts/details.html", context)
