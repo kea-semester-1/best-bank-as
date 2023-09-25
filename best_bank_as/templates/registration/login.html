@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login</title>
+    </head>
+    {% extends "best_bank_as/base.html" %}
+
+    {% block content %}
+        <form accept-charset="{% url 'login' %}" method="post">
+            {% csrf_token %}
+            {{ form }}
+            <button>Log In</button>
+        </form>
+    {% endblock %}
+</html>
