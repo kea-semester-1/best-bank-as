@@ -5,7 +5,7 @@
                 {% if user.is_authenticated %}
                     <li><a href="/">Home</a></li>
                     <li><a href="/accounts/logout">Logout</a></li>
-                    <li><a href="/accounts/{{ user.username.lower }}">{{ user.username }}</a></li>
+                    <a href="{% url 'best_bank_as:profile_page' username=user.username %}">{{ user.username }}</a>
                 {% else %}
                     <li><a href="/">Home</a></li>
                     <li><a href="/accounts/login">Login</a></li>
