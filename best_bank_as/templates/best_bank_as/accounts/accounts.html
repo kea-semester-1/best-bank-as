@@ -1,0 +1,13 @@
+<h1>Accounts</h1>
+{% for account in accounts %}
+      <button
+      hx-target="#details"
+      hx-get="{% url 'best_bank_as:get_details' account.pk %}"
+      >
+          {{ account.account_number }}
+          <p>Click to see details</p>
+      </button>
+{% empty %}
+    <span>No accounts available.</span>
+{% endfor %}
+<div id="details"></div>
