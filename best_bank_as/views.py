@@ -18,7 +18,9 @@ def profile_page(request: HttpRequest, username: str) -> HttpResponse:
     user = get_object_or_404(User, username=username)
 
     if request.user != user:
-        return HttpResponseForbidden(render(request, "best_bank_as/error_pages/error_page.html"))
+        return HttpResponseForbidden(
+            render(request, "best_bank_as/error_pages/error_page.html")
+        )
     context = {user: user}
 
     return render(request, "best_bank_as/profile.html", context)
