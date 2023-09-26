@@ -2,6 +2,7 @@ from collections import defaultdict
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Sum
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 
@@ -36,6 +37,15 @@ def get_accounts(request: HttpRequest, pk: int) -> HttpResponse:
 
     accounts = Account.objects.filter(customer_id=user.pk)
 
+    for account in accounts:
+        balance = (
+            Ledger.objects.filter(account_number_id=account.id).aggregate(
+                Sum("amount")
+            )["amount__sum"]
+            or 0
+        )
+        account.balance = -balance  # Reverse the sign of the balance
+
     context = {"accounts": accounts}
     return render(request, "best_bank_as/accounts/accounts.html", context)
 
@@ -45,6 +55,13 @@ def get_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given account."""
     account = get_object_or_404(Account, pk=pk)
 
+    balance = (
+        Ledger.objects.filter(account_number_id=account.id).aggregate(Sum("amount"))[
+            "amount__sum"
+        ]
+        or 0
+    )
+    account.balance = -balance
     # Find all movements for the given account
     movements = (
         Ledger.objects.filter(account_number_id=pk)
