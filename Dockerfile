@@ -7,8 +7,12 @@ RUN apt-get update && apt-get install -y \
 
 RUN pip install poetry==1.4.2
 
+# install postgres
+RUN apt-get update && apt-get install -y gcc libffi-dev python3-dev build-essential
+RUN apt-get update && apt-get install -y libpq-dev gcc
 # Configuring poetry
 RUN poetry config virtualenvs.create false
+
 
 # Copying requirements of a project
 COPY pyproject.toml poetry.lock /app/
