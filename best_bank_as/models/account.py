@@ -1,7 +1,9 @@
 from collections import defaultdict
+from datetime import datetime
+from decimal import Decimal
 
 from django.db import models
-from django.db.models import F, Sum
+from django.db.models import Sum
 
 from best_bank_as.models.account_type import AccountType
 from best_bank_as.models.core import base_model
@@ -15,30 +17,30 @@ class Account(base_model.BaseModel):
     customer = models.ForeignKey("best_bank_as.Customer", on_delete=models.CASCADE)
     account_type = models.ForeignKey(AccountType, on_delete=models.SET_NULL, null=True)
 
-    def get_balance(self):
+    def get_balance(self) -> Decimal:
         """
-		Retrieve the balance for the account.
-		"""
-        balance = (
-                Ledger.objects.filter(account_number_id=self.id).aggregate(Sum("amount"))["amount__sum"]
-                or 0
-        )
+        Retrieve the balance for the account.
+        """
+        balance = Ledger.objects.filter(account_number_id=self.id).aggregate(
+            Sum("amount")
+        )["amount__sum"] or Decimal(0)
         return -balance
 
-    def get_transactions(self):
+    def get_transactions(
+        self,
+    ) -> dict[int, list[dict[str, int | (datetime | Decimal)]]]:
         """
         Retrieve all transactions related to the account.
         """
-        # Find all movements for the account
+
         movements = (
             Ledger.objects.filter(account_number_id=self.id)
             .select_related("account_number")
             .order_by("transaction_id_id", "created_at")
         )
-    
-        # Create a dictionary to hold the data.
+
         transactions = defaultdict(list)
-    
+
         # Loop over each movement.
         for movement in movements:
             # Retrieve the counterpart movements for each transaction.
@@ -47,9 +49,9 @@ class Account(base_model.BaseModel):
                 .exclude(account_number_id=self.id)
                 .select_related("account_number")
             )
-        
+
             # Loop over each counterpart movement
-            # and append it to the transactions dictionary.
+            # and append it to the transactions' dictionary.
             for counterpart in counterpart_movements:
                 transactions[movement.transaction_id_id].append(
                     {
@@ -58,6 +60,5 @@ class Account(base_model.BaseModel):
                         "account_number": counterpart.account_number.account_number,
                     }
                 )
-    
-        return dict(transactions)
 
+        return dict(transactions)

@@ -1,14 +1,10 @@
-from collections import defaultdict
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Sum
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
-from best_bank_as.models.ledger import Ledger
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -35,10 +31,10 @@ def profile_page(request: HttpRequest, username: str) -> HttpResponse:
 def get_accounts(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve all accounts for a given user."""
     user = get_object_or_404(User, pk=pk)
-    customer = get_object_or_404(Customer, user = user)
-    
+    customer = get_object_or_404(Customer, user=user)
+
     accounts = customer.get_accounts()
-    
+
     context = {"accounts": accounts}
     return render(request, "best_bank_as/accounts/accounts.html", context)
 
@@ -46,16 +42,12 @@ def get_accounts(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def get_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given account."""
-    
+
     account = get_object_or_404(Account, pk=pk)
-    
+
     balance = account.get_balance()
     transactions = account.get_transactions()
-    
-    context = {
-        "account": account,
-        "balance": balance,
-        "transactions": transactions
-    }
- 
+
+    context = {"account": account, "balance": balance, "transactions": transactions}
+
     return render(request, "best_bank_as/accounts/details.html", context)
