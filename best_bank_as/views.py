@@ -1,8 +1,5 @@
-from collections import defaultdict
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Sum
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -41,17 +38,9 @@ def profile_page(request: HttpRequest, username: str) -> HttpResponse:
 def get_accounts(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve all accounts for a given user."""
     user = get_object_or_404(User, pk=pk)
+    customer = get_object_or_404(Customer, user=user)
 
-    accounts = Account.objects.filter(customer_id=user.pk)
-
-    for account in accounts:
-        balance = (
-            Ledger.objects.filter(account_number_id=account.id).aggregate(
-                Sum("amount")
-            )["amount__sum"]
-            or 0
-        )
-        account.balance = -balance  # Reverse the sign of the balance
+    accounts = customer.get_accounts()
 
     context = {"accounts": accounts}
     return render(request, "best_bank_as/accounts/accounts.html", context)
@@ -60,46 +49,13 @@ def get_accounts(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def get_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given account."""
+
     account = get_object_or_404(Account, pk=pk)
 
-    balance = (
-        Ledger.objects.filter(account_number_id=account.id).aggregate(Sum("amount"))[
-            "amount__sum"
-        ]
-        or 0
-    )
-    account.balance = -balance
-    # Find all movements for the given account
-    movements = (
-        Ledger.objects.filter(account_number_id=pk)
-        .select_related("account_number")
-        .order_by("transaction_id_id", "created_at")
-    )
+    balance = account.get_balance()
+    transactions = account.get_transactions()
 
-    # Create a dictionary to hold the data.
-    transactions = defaultdict(list)
-
-    # Loop over each movement.
-    for movement in movements:
-        # Retrieve the counterpart movements for each transaction.
-        counterpart_movements = (
-            Ledger.objects.filter(transaction_id_id=movement.transaction_id_id)
-            .exclude(account_number_id=pk)
-            .select_related("account_number")
-        )
-
-        # Loop over each counterpart movement
-        # and append it to the transactions dictionary.
-        for counterpart in counterpart_movements:
-            transactions[movement.transaction_id_id].append(
-                {
-                    "amount": counterpart.amount,
-                    "created_at": counterpart.created_at,
-                    "account_number": counterpart.account_number.account_number,
-                }
-            )
-
-    context = {"account": account, "transactions": dict(transactions)}
+    context = {"account": account, "balance": balance, "transactions": transactions}
 
     return render(request, "best_bank_as/accounts/details.html", context)
 
