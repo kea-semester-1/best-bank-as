@@ -16,7 +16,7 @@ class Account(base_model.BaseModel):
     account_number = models.IntegerField(
         unique=True,
     )
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customer = models.ForeignKey("best_bank_as.Customer", on_delete=models.CASCADE)
     type = models.IntegerField(
         choices=enums.AccountType.choices,
         default=0,
@@ -26,7 +26,7 @@ class Account(base_model.BaseModel):
         """
         Retrieve the balance for the account.
         """
-        balance = Ledger.objects.filter(account_number_id=self.id).aggregate(
+        balance = Ledger.objects.filter(account_number_id=self.pk).aggregate(
             Sum("amount")
         )["amount__sum"] or Decimal(0)
         return -balance
@@ -39,7 +39,7 @@ class Account(base_model.BaseModel):
         """
 
         movements = (
-            Ledger.objects.filter(account_number_id=self.id)
+            Ledger.objects.filter(account_number_id=self.pk)
             .select_related("account_number")
             .order_by("transaction_id_id", "created_at")
         )
@@ -51,7 +51,7 @@ class Account(base_model.BaseModel):
             # Retrieve the counterpart movements for each transaction.
             counterpart_movements = (
                 Ledger.objects.filter(transaction_id_id=movement.transaction_id_id)
-                .exclude(account_number_id=self.id)
+                .exclude(account_number_id=self.pk)
                 .select_related("account_number")
             )
 
@@ -69,5 +69,4 @@ class Account(base_model.BaseModel):
         return dict(transactions)
 
     def __str__(self) -> str:
-        """Return string representation of account."""
         return f"Account Number: {self.account_number}, Customer({self.customer})"

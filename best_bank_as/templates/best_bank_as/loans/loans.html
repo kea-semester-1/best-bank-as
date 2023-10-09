@@ -10,14 +10,16 @@
     {% extends "best_bank_as/base.html" %}
     {% block content %}
 
-
+    {% if customer.rank > 0 %}
     <h1>Apply for a loan</h1>
     <form action="" method="post">
         {% csrf_token %}
         {{ form }}
         <input type="submit">
     </form>
-
+    {% else %}
+    <h1>You are not eligible for a loan</h1>
+    {% endif %}
 
     {% if loan_applications %}
     <h1>Your loan applications</h1>

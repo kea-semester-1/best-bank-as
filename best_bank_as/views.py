@@ -3,12 +3,11 @@ from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
-from best_bank_as.enums import ApplicationStatus, ApplicationType
+from best_bank_as.enums import ApplicationStatus, ApplicationType, CustomerRank
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.customer_application import CustomerApplication
-from best_bank_as.models.ledger import Ledger
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -79,8 +78,8 @@ def loans_page(request: HttpRequest) -> HttpResponse:
         "loan_applications": zip(loan_applications, statuses, strict=True),
     }
 
-    # if customer.rank <= CustomerRank.BLUE:
-    #     return render(request, "best_bank_as/loans/loans.html", context)
+    if customer.rank <= CustomerRank.BLUE:
+        return render(request, "best_bank_as/loans/loans.html", context)
 
     if request.method != "POST":
         context["form"] = LoanApplicationForm(customer=customer)
@@ -92,7 +91,6 @@ def loans_page(request: HttpRequest) -> HttpResponse:
             request,
             "best_bank_as/error_pages/error_page.html",
         )
-    context["form"] = form
 
     form_data = form.cleaned_data
     reason = form_data["reason"]
@@ -107,7 +105,7 @@ def loans_page(request: HttpRequest) -> HttpResponse:
     )
     application.save()
 
-    return render(request, "best_bank_as/loans/loans.html", context)
+    return redirect("best_bank_as:loans-page")
 
 
 @login_required
@@ -116,4 +114,4 @@ def delete_loan_application(request: HttpRequest, pk: int) -> HttpResponse:
     application = get_object_or_404(CustomerApplication, pk=pk)
     application.delete()
 
-    return redirect("loans-page")
+    return redirect("best_bank_as:loans-page")
