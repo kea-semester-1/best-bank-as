@@ -1,14 +1,15 @@
- {% extends "best_bank_as/base.html" %}
-    <!-- Main section -->
-    {% block content %}
+{% extends "best_bank_as/base.html" %}
+<!-- Main section -->
+{% block content %}
 
-        <h1>Hi {{ user.username }}</h1>
 
-        <div>
-            <button
-            hx-get="{% url 'best_bank_as:get_accounts' user.pk %}"
-            hx-target="#account_target"
-            >Accounts</button>
-        </div>
-        <div id="account_target"></div>
-    {% endblock %}
+<h3>Details for Customer: {{ customer.user.username }}</h3>
+<h4>Role: {{ customer.rank }}</h4>
+
+
+
+<div>
+    <button hx-get="{% url 'best_bank_as:get_accounts' user.pk %}" hx-target="#account_target">Accounts</button>
+</div>
+<div id="account_target"></div>
+{% endblock %}

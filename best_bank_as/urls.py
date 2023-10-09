@@ -10,4 +10,10 @@ urlpatterns = [
     path("profile/<str:username>", views.profile_page, name="profile_page"),
     path("accounts/<int:pk>", views.get_accounts, name="get_accounts"),
     path("accounts/details/<int:pk>", views.get_details, name="get_details"),
+    path("loans", views.loans_page, name="loans-page"),
+    path(
+        "loans/<int:pk>",
+        views.delete_loan_application,
+        name="delete-loan-application",
+    ),
 ]
