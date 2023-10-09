@@ -24,27 +24,23 @@ class Account(base_model.BaseModel):
         balance = Ledger.objects.filter(account_number_id=self.id).aggregate(
             Sum("amount")
         )["amount__sum"]
-        return balance
+        return balance or Decimal(0)
 
-    def get_transactions(
-        self,
-    ) -> dict[int, list[dict[str, int | (datetime | Decimal)]]]:
+    def get_transactions(self) -> dict[int, list[dict[str, int | (datetime | Decimal)]]]:
         """
         Retrieve all transactions related to the account.
         """
-
-        # First, fetch all transaction IDs related to this account.
+    
+        # Fetch all transaction IDs related to this account.
         related_transaction_ids = (
             Ledger.objects.filter(account_number_id=self.id)
             .values_list("transaction_id_id", flat=True)
             .distinct()
         )
-
-        # Fetch all ledger entries that are part of these transactions
-        # excluding the current account's entries.
-        counterpart_movements = (
-            Ledger.objects.filter(transaction_id_id__in=related_transaction_ids)
-            .exclude(account_number_id=self.id)
+    
+        # Fetch all ledger entries that are part of these transactions for the current account.
+        current_account_movements = (
+            Ledger.objects.filter(transaction_id_id__in=related_transaction_ids, account_number_id=self.id)
             .select_related("account_number")
             .order_by("transaction_id_id", "created_at")
             .values(
@@ -54,12 +50,12 @@ class Account(base_model.BaseModel):
                 "account_number",
             )
         )
-
+    
         # Group the entries by transaction ID.
         transactions = defaultdict(list)
-        for movement in counterpart_movements:
+        for movement in current_account_movements:
             transactions[movement["transaction_id_id"]].append(movement)
-
+    
         return dict(transactions)
 
     def __str__(self):
