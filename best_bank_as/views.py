@@ -2,12 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+
 from best_bank_as.enums import ApplicationStatus, ApplicationType, CustomerRank
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
+from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.customer_application import CustomerApplication
-from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.ledger import Ledger
 
 
@@ -120,8 +121,8 @@ def delete_loan_application(request: HttpRequest, pk: int) -> HttpResponse:
     application.delete()
 
     return redirect("best_bank_as:loans-page")
-  
-  
+
+
 @login_required()
 def transfer_money(request: HttpRequest) -> HttpResponse:
     """View to transfer money from account to account."""
