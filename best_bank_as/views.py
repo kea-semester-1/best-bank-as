@@ -75,6 +75,7 @@ def search_customer(request: HttpRequest) -> HttpResponse:
 
     if not request.user.is_staff:
         return HttpResponseForbidden()
+
     customers = (
         Customer.objects.filter(
             Q(phone_number__icontains=query)
