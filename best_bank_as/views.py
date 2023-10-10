@@ -2,12 +2,13 @@ from collections import defaultdict
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Sum
+from django.db.models import Sum, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 
 from best_bank_as.models.account import Account
 from best_bank_as.models.ledger import Ledger
+from best_bank_as.models.customer import Customer
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -95,3 +96,45 @@ def get_details(request: HttpRequest, pk: int) -> HttpResponse:
     context = {"account": account, "transactions": dict(transactions)}
 
     return render(request, "best_bank_as/accounts/details.html", context)
+
+
+@login_required
+def staff_page(request: HttpRequest, username: str) -> HttpResponse:
+    """View for a staff page."""
+    user = get_object_or_404(User, username=username)
+
+    if request.user != user:
+        return HttpResponseForbidden(
+            render(request, "best_bank_as/error_pages/error_page.html")
+        )
+    context = {user: user}
+
+    return render(request, "best_bank_as/staff.html", context)
+
+
+@login_required
+def get_customers(request: HttpRequest) -> HttpResponse:
+    """Retrieve all customer in the bank."""
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    customers = Customer.objects.all()
+    context = {"customers": customers}
+    return render(request, "best_bank_as/customers/customers.html", context)
+
+
+@login_required
+def search_customer(request: HttpRequest) -> HttpResponse:
+    query = request.GET.get("query", "")
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    customers = Customer.objects.filter(
+        Q(phone_number__icontains=query) | Q(user__username__icontains=query)
+    )
+
+    # Render a template and pass in the customers found in the search
+    context = {"customers": customers, "query": query}
+    return render(request, "best_bank_as/customers/search_results.html", context)
