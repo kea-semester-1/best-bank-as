@@ -10,4 +10,5 @@ urlpatterns = [
     path("profile/<str:username>", views.profile_page, name="profile_page"),
     path("accounts/<int:pk>", views.get_accounts, name="get_accounts"),
     path("accounts/details/<int:pk>", views.get_details, name="get_details"),
+    path("transfer/", views.transfer_money, name="transfer_money"),
 ]

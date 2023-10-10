@@ -10,5 +10,12 @@
             hx-target="#account_target"
             >Accounts</button>
         </div>
+        <div>
+            <button
+                    hx-get="{% url 'best_bank_as:transfer_money' %}"
+                    hx-target="#transfer_target"
+            >Transfer Money</button>
+        </div>
         <div id="account_target"></div>
+        <div id="transfer_target"></div>
     {% endblock %}
