@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Best Bank A/S</title>
+</head>
+
+<body>
+    {% extends "best_bank_as/base.html" %}
+    {% block content %}
+
+    {% if customer.rank > 0 %}
+    <h1>Apply for a loan</h1>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="submit">
+    </form>
+    {% else %}
+    <h1>You are not eligible for a loan</h1>
+    {% endif %}
+
+    {% if loan_applications %}
+    <h1>Your loan applications</h1>
+
+    {% for application, status in loan_applications %}
+    <a href="{% url 'best_bank_as:delete-loan-application' application.pk %}">
+        <p>Status: {{ status }}</p>
+        <p>Loan amount: {{ application.amount }}</p>
+        <p>Reason: {{ application.reason }}</p>
+    </a>
+    {% endfor %}
+
+    {% endif %}
+
+    {% endblock %}
+
+</body>
+
+</html>

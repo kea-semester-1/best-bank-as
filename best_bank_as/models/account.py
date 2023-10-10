@@ -5,7 +5,7 @@ from decimal import Decimal
 from django.db import models
 from django.db.models import Sum
 
-from best_bank_as.models.account_type import AccountType
+from best_bank_as import enums
 from best_bank_as.models.core import base_model
 from best_bank_as.models.ledger import Ledger
 
@@ -13,15 +13,20 @@ from best_bank_as.models.ledger import Ledger
 class Account(base_model.BaseModel):
     """Model for account."""
 
-    account_number = models.IntegerField(unique=True)
+    account_number = models.IntegerField(
+        unique=True,
+    )
     customer = models.ForeignKey("best_bank_as.Customer", on_delete=models.CASCADE)
-    account_type = models.ForeignKey(AccountType, on_delete=models.SET_NULL, null=True)
+    type = models.IntegerField(
+        choices=enums.AccountType.choices,
+        default=0,
+    )
 
     def get_balance(self) -> Decimal:
         """
         Retrieve the balance for the account.
         """
-        balance = Ledger.objects.filter(account_number_id=self.id).aggregate(
+        balance = Ledger.objects.filter(account_number_id=self.pk).aggregate(
             Sum("amount")
         )["amount__sum"]
         return balance or Decimal(0)
@@ -64,4 +69,4 @@ class Account(base_model.BaseModel):
         return dict(transactions)
 
     def __str__(self) -> str:
-        return str(self.account_number)
+        return f"Account Number: {self.account_number}, Customer({self.customer})"
