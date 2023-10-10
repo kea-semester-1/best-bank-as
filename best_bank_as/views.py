@@ -89,8 +89,11 @@ def search_customer(request: HttpRequest) -> HttpResponse:
         return HttpResponseForbidden()
     customers = (
         Customer.objects.filter(
-            Q(phone_number__icontains=query) | Q(user__username__icontains=query)
+            Q(phone_number__icontains=query)
+            | Q(user__username__icontains=query)
+            | Q(account__account_number__icontains=query)
         )
+        .distinct()
         .select_related("user", "customer_level")  # join
         .prefetch_related(
             Prefetch(
