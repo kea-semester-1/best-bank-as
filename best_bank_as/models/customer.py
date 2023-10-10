@@ -29,4 +29,3 @@ class Customer(base_model.BaseModel):
             account.balance = -balance  # Reverse the sign of the balance
 
         return accounts
-

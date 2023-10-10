@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Q, Prefetch
+from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 
@@ -67,22 +67,9 @@ def staff_page(request: HttpRequest, username: str) -> HttpResponse:
 
     return render(request, "best_bank_as/staff.html", context)
 
-
-@login_required
-def get_customers(request: HttpRequest) -> HttpResponse:
-    """Retrieve all customer in the bank."""
-
-    if not request.user.is_staff:
-        return HttpResponseForbidden()
-
-    customers = Customer.objects.all()
-    context = {"customers": customers}
-    return render(request, "best_bank_as/customers/customers.html", context)
-
-
 @login_required
 def search_customer(request: HttpRequest) -> HttpResponse:
-    """View for searching customers"""
+    """View for searching customers."""
     query = request.GET.get("query", "")
 
     if not request.user.is_staff:
