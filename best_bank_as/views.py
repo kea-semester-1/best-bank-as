@@ -62,24 +62,24 @@ def get_details(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required()
 def transfer_money(request: HttpRequest) -> HttpResponse:
     """View to transfer money from account to account."""
-    if request.method == "POST":
-        form = TransferForm(data=request.POST, user=request.user)
-        if form.is_valid():
-            source_account = form.cleaned_data["source_account"]
-            destination_account = form.cleaned_data["destination_account"]
-            destination_account_instance = Account.objects.get(
-                account_number=destination_account
-            )
-
-            amount = form.cleaned_data["amount"]
-
-            Ledger.transfer(source_account, destination_account_instance, amount)
-
-            return redirect("best_bank_as:index")
-        else:
-            print(form.errors)
-    else:
-        form = TransferForm(user=request.user)
-    return render(
-        request, "best_bank_as/handle_funds/transfer-money.html", {"form": form}
+    if request.method != "POST":
+        return render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {"form": TransferForm(user=request.user)},
+        )
+    form = TransferForm(data=request.POST, user=request.user)
+    if not form.is_valid():  # or throw exception
+        return render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {"form": form},
+        )
+    source_account = form.cleaned_data["source_account"]
+    destination_account = form.cleaned_data["destination_account"]
+    destination_account_instance = Account.objects.get(
+        account_number=destination_account
     )
+    amount = form.cleaned_data["amount"]
+    Ledger.transfer(source_account, destination_account_instance, amount)
+    return redirect("best_bank_as:index")
