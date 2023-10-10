@@ -67,6 +67,7 @@ def staff_page(request: HttpRequest, username: str) -> HttpResponse:
 
     return render(request, "best_bank_as/staff.html", context)
 
+
 @login_required
 def search_customer(request: HttpRequest) -> HttpResponse:
     """View for searching customers."""
