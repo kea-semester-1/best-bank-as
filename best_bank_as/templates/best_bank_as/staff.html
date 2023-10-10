@@ -1,0 +1,13 @@
+{% extends "best_bank_as/base.html" %}
+
+{% block content %}
+<h1>Hi {{ user.username }}!</h1>
+
+<!-- Search Form -->
+<form method="get" action="{% url 'best_bank_as:search_customer' %}">
+    <label for="search">Search Customer:</label>
+    <input type="text" id="search" name="query" required>
+    <button type="submit">Search</button>
+</form>
+
+{% endblock %}

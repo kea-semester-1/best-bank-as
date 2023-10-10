@@ -1,0 +1,25 @@
+{% extends "best_bank_as/base.html" %}
+
+{% block content %}
+<h1>Search Results for "{{ query }}"</h1>
+
+{% if customers %}
+    <ul>
+        {% for customer in customers %}
+            <li>
+                {{ customer.user.username }} - {{ customer.phone_number }} - {{ customer.customer_level.customer_level_name }}
+                <div>
+                    <h2>Accounts:</h2>
+                    <ul>
+                        {% for account in customer.account_set.all %}
+                            <li>Account Number: {{ account.account_number }} ({{ account.account_type.account_type_name }})</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No customers found.</p>
+{% endif %}
+{% endblock %}

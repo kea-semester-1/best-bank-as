@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Q, Prefetch
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, render
 
@@ -51,3 +52,54 @@ def get_details(request: HttpRequest, pk: int) -> HttpResponse:
     context = {"account": account, "balance": balance, "transactions": transactions}
 
     return render(request, "best_bank_as/accounts/details.html", context)
+
+
+@login_required
+def staff_page(request: HttpRequest, username: str) -> HttpResponse:
+    """View for a staff page."""
+    user = get_object_or_404(User, username=username)
+
+    if request.user != user:
+        return HttpResponseForbidden(
+            render(request, "best_bank_as/error_pages/error_page.html")
+        )
+    context = {user: user}
+
+    return render(request, "best_bank_as/staff.html", context)
+
+
+@login_required
+def get_customers(request: HttpRequest) -> HttpResponse:
+    """Retrieve all customer in the bank."""
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    customers = Customer.objects.all()
+    context = {"customers": customers}
+    return render(request, "best_bank_as/customers/customers.html", context)
+
+
+@login_required
+def search_customer(request: HttpRequest) -> HttpResponse:
+    """View for searching customers"""
+    query = request.GET.get("query", "")
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    # Using select_related and prefetch_related to optimize queries
+    customers = (
+        Customer.objects.filter(
+            Q(phone_number__icontains=query) | Q(user__username__icontains=query)
+        )
+        .select_related("user", "customer_level")
+        .prefetch_related(
+            Prefetch(
+                "account_set", queryset=Account.objects.select_related("account_type")
+            )
+        )
+    )
+
+    context = {"customers": customers, "query": query}
+    return render(request, "best_bank_as/customers/search_results.html", context)
