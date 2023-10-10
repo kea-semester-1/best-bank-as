@@ -4,21 +4,45 @@
 <h1>Search Results for "{{ query }}"</h1>
 
 {% if customers %}
-    <ul>
         {% for customer in customers %}
-            <li>
-                {{ customer.user.username }} - {{ customer.phone_number }} - {{ customer.customer_level.customer_level_name }}
-                <div>
-                    <h2>Accounts:</h2>
-                    <ul>
-                        {% for account in customer.account_set.all %}
-                            <li>Account Number: {{ account.account_number }} ({{ account.account_type.account_type_name }})</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </li>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Phone Number</th>
+                    <th>Customer Level</th>
+                    <th>Accounts</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ customer.user.username }}</td>
+                    <td>{{ customer.phone_number }}</td>
+                    <td>{{ customer.customer_level.customer_level_name }}</td>
+                    <td>
+                        <table border="1">
+                            <thead>
+                                <tr>
+                                    <th>Account Number</th>
+                                    <th>Account Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for account in customer.account_set.all %}
+                                    <tr>
+                                        <td>{{ account.account_number }}</td>
+                                        <td>{{ account.account_type.account_type_name }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
         {% endfor %}
-    </ul>
+
 {% else %}
     <p>No customers found.</p>
 {% endif %}
