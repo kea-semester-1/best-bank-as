@@ -2,12 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-
 from best_bank_as.enums import ApplicationStatus, ApplicationType, CustomerRank
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.customer_application import CustomerApplication
+from best_bank_as.forms.TransferForm import TransferForm
+from best_bank_as.models.ledger import Ledger
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -53,6 +54,10 @@ def get_details(request: HttpRequest, pk: int) -> HttpResponse:
 
     balance = account.get_balance()
     transactions = account.get_transactions()
+
+    print("Acc ID:", pk)
+    print("Details:", account)
+    print("Balance:", balance)
 
     context = {"account": account, "balance": balance, "transactions": transactions}
 
@@ -115,3 +120,29 @@ def delete_loan_application(request: HttpRequest, pk: int) -> HttpResponse:
     application.delete()
 
     return redirect("best_bank_as:loans-page")
+  
+  
+@login_required()
+def transfer_money(request: HttpRequest) -> HttpResponse:
+    """View to transfer money from account to account."""
+    if request.method != "POST":
+        return render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {"form": TransferForm(user=request.user)},
+        )
+    form = TransferForm(data=request.POST, user=request.user)
+    if not form.is_valid():  # or throw exception
+        return render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {"form": form},
+        )
+    source_account = form.cleaned_data["source_account"]
+    destination_account = form.cleaned_data["destination_account"]
+    destination_account_instance = Account.objects.get(
+        account_number=destination_account
+    )
+    amount = form.cleaned_data["amount"]
+    Ledger.transfer(source_account, destination_account_instance, amount)
+    return redirect("best_bank_as:index")

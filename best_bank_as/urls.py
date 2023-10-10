@@ -16,4 +16,5 @@ urlpatterns = [
         views.delete_loan_application,
         name="delete-loan-application",
     ),
+    path("transfer/", views.transfer_money, name="transfer_money"),
 ]
