@@ -87,16 +87,15 @@ def search_customer(request: HttpRequest) -> HttpResponse:
 
     if not request.user.is_staff:
         return HttpResponseForbidden()
-
-    # Using select_related and prefetch_related to optimize queries
     customers = (
         Customer.objects.filter(
             Q(phone_number__icontains=query) | Q(user__username__icontains=query)
         )
-        .select_related("user", "customer_level")
+        .select_related("user", "customer_level")  # join
         .prefetch_related(
             Prefetch(
-                "account_set", queryset=Account.objects.select_related("account_type")
+                "account_set",
+                queryset=Account.objects.select_related("account_type"),  # join on type
             )
         )
     )
