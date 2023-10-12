@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -66,6 +67,46 @@ def get_details(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @login_required
+def staff_page(request: HttpRequest, username: str) -> HttpResponse:
+    """View for a staff page."""
+    user = get_object_or_404(User, username=username)
+
+    if request.user != user:
+        return HttpResponseForbidden(
+            render(request, "best_bank_as/error_pages/error_page.html")
+        )
+    context = {user: user}
+
+    return render(request, "best_bank_as/staff.html", context)
+
+
+@login_required
+def search_customer(request: HttpRequest) -> HttpResponse:
+    """View for searching customers."""
+    query = request.GET.get("query", "")
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    customers = (
+        Customer.objects.filter(
+            Q(phone_number__icontains=query)
+            | Q(user__username__icontains=query)
+            | Q(account__account_number__icontains=query)
+        )
+        .distinct()
+        .select_related("user")  # join
+        .prefetch_related(
+            Prefetch(
+                "account_set",
+            )
+        )
+    )
+
+    context = {"customers": customers, "query": query}
+    return render(request, "best_bank_as/customers/search_results.html", context)
+
+
 def loans_page(request: HttpRequest) -> HttpResponse:
     """Loans page view."""
     user = request.user

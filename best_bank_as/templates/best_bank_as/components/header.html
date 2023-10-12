@@ -3,10 +3,14 @@
         <nav>
             <ul>
                 {% if user.is_authenticated %}
-                <li><a href="/">Home</a></li>
-                <a href="{% url 'best_bank_as:loans-page'%}">Loans&nbsp;</a>
-                <a href="{% url 'best_bank_as:profile_page' username=user.username %}">{{ user.username }}</a>
-                <li><a href="/accounts/logout">Logout</a></li>
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/accounts/logout">Logout</a></li>
+                    <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">My Page</a></li>
+                    {% if user.is_staff %}
+                    <li><a href="{% url 'best_bank_as:staff_page' username=user.username %}">Edit Customers</a></li>
+                    <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">Approve Loans</a></li>
+                    <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">Approve New Customer</a></li>
+                    {% endif %}
                 {% else %}
                 <li><a href="/">Home</a></li>
                 <li><a href="/accounts/login">Login</a></li>
