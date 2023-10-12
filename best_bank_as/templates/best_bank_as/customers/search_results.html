@@ -20,7 +20,7 @@
 
                     <td><a href="{% url 'best_bank_as:get_accounts' customer.user.pk %}">{{ customer.user.username }}</a></td>
                     <td>{{ customer.phone_number }}</td>
-                    <td>{{ customer.customer_level.customer_level_name }}</td>
+                    <td>{{ customer.rank }}</td>
                     <td>
                         <table border="1">
                             <thead>

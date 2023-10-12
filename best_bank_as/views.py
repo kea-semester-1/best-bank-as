@@ -95,11 +95,10 @@ def search_customer(request: HttpRequest) -> HttpResponse:
             | Q(account__account_number__icontains=query)
         )
         .distinct()
-        .select_related("user", "customer_level")  # join
+        .select_related("user")  # join
         .prefetch_related(
             Prefetch(
                 "account_set",
-                queryset=Account.objects.select_related("account_type"),  # join on type
             )
         )
     )
