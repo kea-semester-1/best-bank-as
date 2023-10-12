@@ -12,4 +12,11 @@ urlpatterns = [
     path("accounts/details/<int:pk>", views.get_details, name="get_details"),
     path("staff/<str:username>", views.staff_page, name="staff_page"),
     path("staff/search/", views.search_customer, name="search_customer"),
+    path("loans", views.loans_page, name="loans-page"),
+    path(
+        "loans/<int:pk>",
+        views.delete_loan_application,
+        name="delete-loan-application",
+    ),
+    path("transfer/", views.transfer_money, name="transfer_money"),
 ]

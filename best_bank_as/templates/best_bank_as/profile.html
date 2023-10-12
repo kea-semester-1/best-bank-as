@@ -2,7 +2,7 @@
     <!-- Main section -->
     {% block content %}
 
-        <h1>Hi {{ user.username }}</h1>
+        <h1>Hi {{ customer.user.username }}</h1>
 
         <div>
             <button
@@ -10,5 +10,12 @@
             hx-target="#account_target"
             >Accounts</button>
         </div>
+        <div>
+            <button
+                    hx-get="{% url 'best_bank_as:transfer_money' %}"
+                    hx-target="#transfer_target"
+            >Transfer Money</button>
+        </div>
         <div id="account_target"></div>
+        <div id="transfer_target"></div>
     {% endblock %}
