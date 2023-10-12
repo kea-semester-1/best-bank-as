@@ -20,7 +20,7 @@
 
                     <td><a href="{% url 'best_bank_as:get_accounts' customer.user.pk %}">{{ customer.user.username }}</a></td>
                     <td>{{ customer.phone_number }}</td>
-                    <td>{{ customer.rank }}</td>
+                    <td>{{ customer.get_rank_display }}</td>
                     <td>
                         <table border="1">
                             <thead>
@@ -33,7 +33,7 @@
                                 {% for account in customer.account_set.all %}
                                     <tr>
                                         <td><a href="{% url 'best_bank_as:get_details' account.pk %}">{{ account.account_number }}</a></td>
-                                        <td>{{ account.account_type.account_type_name }}</td>
+                                        <td>{{ account.get_type_display }}</td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
