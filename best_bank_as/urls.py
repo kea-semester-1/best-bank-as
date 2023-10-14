@@ -1,5 +1,6 @@
 from django.urls import path
 
+from best_bank_as.views_classes import customer_view
 from best_bank_as import views
 
 app_name = "best_bank_as"
@@ -12,6 +13,9 @@ urlpatterns = [
     path("accounts/details/<int:pk>", views.get_details, name="get_details"),
     path("staff/<str:username>", views.staff_page, name="staff_page"),
     path("staff/search/", views.search_customer, name="search_customer"),
+    path(
+        "register/", customer_view.CustomerCreateView.as_view(), name="create_customer"
+    ),
     path("loans", views.loans_page, name="loans-page"),
     path(
         "loans/<int:pk>",

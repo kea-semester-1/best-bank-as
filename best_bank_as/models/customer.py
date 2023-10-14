@@ -18,6 +18,11 @@ class Customer(base_model.BaseModel):
         default=2,
         editable=False,  # Should be programmatically set
     )
+    status = models.IntegerField(
+        choices=enums.CustomerStatus.choices,
+        default=1,
+        editable=False,  # Should be programmatically set
+    )
 
     def get_accounts(self) -> QuerySet[Account]:
         """Retrieve all accounts for a give user."""
