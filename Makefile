@@ -23,4 +23,4 @@ shell: ## Open a shell in the container
 	
 superuser: ## Create superuser
 	@echo "Creating superuser..."
-	poetry run python manage.py createsuperuser
+	docker container exec -it $$(docker ps | grep best-bank-as-web | awk '{print $$1}') python manage.py createsuperuser
