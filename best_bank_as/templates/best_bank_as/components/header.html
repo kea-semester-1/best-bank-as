@@ -3,15 +3,15 @@
         <nav>
             <ul>
                 {% if user.is_authenticated %}
-                    <li><a href="/">Home</a></li>
-                    <li><a href="/accounts/logout">Logout</a></li>
-                    <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">My Page</a></li>
-                    <li><a href="{% url 'best_bank_as:loans-page' %}">Apply for loan</a></li>
-                    {% if user.is_staff %}
-                    <li><a href="{% url 'best_bank_as:staff_page' username=user.username %}">Edit Customers</a></li>
-                    <li><a href="{% url 'best_bank_as:approve_customers'%}">Approve Customers</a></li>
-                    <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">Approve Loans</a></li>
-                    {% endif %}
+                <li><a href="/">Home</a></li>
+                <li><a href="/accounts/logout">Logout</a></li>
+                <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">My Page</a></li>
+                <li><a href="{% url 'best_bank_as:new_loan_application' %}">Apply for loan</a></li>
+                {% if user.is_staff %}
+                <li><a href="{% url 'best_bank_as:staff_page' username=user.username %}">Edit Customers</a></li>
+                <li><a href="{% url 'best_bank_as:approve_customers'%}">Approve Customers</a></li>
+                <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">Approve Loans</a></li>
+                {% endif %}
                 {% else %}
                 <li><a href="/">Home</a></li>
                 <li><a href="/accounts/login">Login</a></li>

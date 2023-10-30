@@ -21,10 +21,7 @@ class Account(base_model.BaseModel):
         choices=enums.AccountType.choices,
         default=0,
     )
-    account_status = models.IntegerField(
-        choices=enums.AccountStatus.choices,
-        default=0
-    )
+    account_status = models.IntegerField(choices=enums.AccountStatus.choices, default=0)
 
     def get_balance(self) -> Decimal:
         """

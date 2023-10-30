@@ -4,7 +4,7 @@ from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
-from best_bank_as.enums import ApplicationStatus, ApplicationType, CustomerRank
+from best_bank_as.enums import ApplicationStatus, ApplicationType
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.account import Account
@@ -118,61 +118,81 @@ def search_customer(request: HttpRequest) -> HttpResponse:
     return render(request, "best_bank_as/customers/search_results.html", context)
 
 
-def loans_page(request: HttpRequest) -> HttpResponse:
-    """Loans page view."""
-    user = request.user
-    customer = get_object_or_404(Customer, user=user)
+@login_required
+def new_loan_application(request: HttpRequest) -> HttpResponse:
+    """View for creating a new loan application."""
 
-    loan_applications = CustomerApplication.objects.filter(
-        customer_id=customer.pk, type=ApplicationType.LOAN
-    )
-    statuses = [
-        ApplicationStatus.int_to_enum(application.status)
-        for application in loan_applications
-    ]
+    customer = get_object_or_404(Customer, user=request.user)
+
+    if request.method == "POST":
+        if not customer.can_loan:
+            return render(
+                request,
+                "best_bank_as/error_pages/error_page.html",
+            )
+
+        form = LoanApplicationForm(data=request.POST, customer=customer)
+        if not form.is_valid():
+            return render(
+                request,
+                "best_bank_as/error_pages/error_page.html",
+            )
+        form_data = form.cleaned_data
+        application = CustomerApplication(
+            reason=form_data["reason"],
+            amount=form_data["amount"],
+            type=ApplicationType.LOAN,
+            status=ApplicationStatus.PENDING,
+            customer=customer,
+        )
+        application.save()
+        return redirect("best_bank_as:new_loan_application")
 
     context = {
         "customer": customer,
-        "loan_applications": zip(loan_applications, statuses, strict=True),
+        "loan_applications": customer.loan_applications,
+        "form": LoanApplicationForm(customer=customer),
     }
 
-    if customer.rank <= CustomerRank.BLUE:
-        return render(request, "best_bank_as/loans/loans.html", context)
-
-    if request.method != "POST":
-        context["form"] = LoanApplicationForm(customer=customer)
-        return render(request, "best_bank_as/loans/loans.html", context)
-
-    form = LoanApplicationForm(data=request.POST, customer=customer)
-    if not form.is_valid():
-        return render(
-            request,
-            "best_bank_as/error_pages/error_page.html",
-        )
-
-    form_data = form.cleaned_data
-    reason = form_data["reason"]
-    amount = form_data["amount"]
-
-    application = CustomerApplication(
-        reason=reason,
-        amount=amount,
-        type=ApplicationType.LOAN,
-        status=ApplicationStatus.PENDING,
-        customer=customer,
+    return render(
+        request,
+        "best_bank_as/loans/loan_application.html",
+        context,
     )
-    application.save()
-
-    return redirect("best_bank_as:loans-page")
 
 
 @login_required
-def delete_loan_application(request: HttpRequest, pk: int) -> HttpResponse:
-    """Delete a loan application."""
-    application = get_object_or_404(CustomerApplication, pk=pk)
-    application.delete()
+def loan_applications_list(request: HttpRequest) -> HttpResponse:
+    """View for listing all loan applications."""
+    ...
 
-    return redirect("best_bank_as:loans-page")
+
+@login_required
+# @require_http_methods(["GET", "DELETE"])
+def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
+    """Retrieve information for a given loan application."""
+
+    customer = get_object_or_404(Customer, user=request.user)
+    application = get_object_or_404(CustomerApplication, pk=pk)
+    if application.customer != customer:
+        return HttpResponseForbidden(
+            render(request, "best_bank_as/error_pages/error_page.html")
+        )
+
+    if request.method == "DELETE":
+        application.delete()
+        return redirect("best_bank_as:new_loan_application")
+
+    context = {
+        "loan_application": application,
+        "status_name": application.status_name,
+    }
+
+    return render(
+        request,
+        "best_bank_as/loans/loan_application_details.html",
+        context,
+    )
 
 
 @login_required()
