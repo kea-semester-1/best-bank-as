@@ -1,14 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
-from best_bank_as.forms.customer_form import (
-    CustomerCreationForm,
-    UserCreationForm,
-    CustomerApproveForm,
-)
-
 
 from best_bank_as.enums import (
     ApplicationStatus,
@@ -16,13 +9,13 @@ from best_bank_as.enums import (
     CustomerRank,
     CustomerStatus,
 )
+from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
-from django.http import QueryDict
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -218,6 +211,7 @@ def transfer_money(request: HttpRequest) -> HttpResponse:
 
 
 def new_customer(request: HttpRequest) -> HttpResponse:
+    """Create a new customer profile."""
     if request.method == "GET":
         user_form = UserCreationForm()
         customer_form = CustomerCreationForm()
@@ -248,6 +242,7 @@ def new_customer(request: HttpRequest) -> HttpResponse:
 
 
 def approve_customers_list(request: HttpRequest) -> HttpResponse:
+    """Get all pending new customers."""
     customers = Customer.get_pending()
     return render(
         request,
@@ -257,6 +252,7 @@ def approve_customers_list(request: HttpRequest) -> HttpResponse:
 
 
 def approve_customers_details(request: HttpRequest, pk: int) -> HttpResponse:
+    """Update status on customer, from pending to: Approved or Rejected."""
     customer = get_object_or_404(Customer, pk=pk)
 
     if request.method == "PUT":

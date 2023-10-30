@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import QuerySet, Sum, Prefetch, Q
+from django.db.models import Prefetch, Q, QuerySet, Sum
+
 from best_bank_as import enums
 from best_bank_as.models.account import Account
 from best_bank_as.models.core import base_model
@@ -39,7 +40,7 @@ class Customer(base_model.BaseModel):
         return accounts
 
     def update_status(self, status: enums.CustomerStatus) -> "Customer":
-        """Method for updating status on the customer"""
+        """Method for updating status on the customer."""
         self.status = status
         self.save()
         return self
