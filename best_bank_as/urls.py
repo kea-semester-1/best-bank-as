@@ -1,7 +1,7 @@
 from django.urls import path
 
-from best_bank_as.views_classes import customer_view
 from best_bank_as import views
+from best_bank_as.views_classes import customer_view
 
 app_name = "best_bank_as"
 

@@ -1,11 +1,14 @@
-from django.shortcuts import render, redirect
-from django.views import View
-from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
-from best_bank_as.enums import CustomerStatus
 from django.http import HttpRequest, HttpResponse
+from django.shortcuts import redirect, render
+from django.views import View
+
+from best_bank_as.enums import CustomerStatus
+from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
 
 
 class CustomerCreateView(View):
+    """Customer view class. Deprecated."""
+
     def get(self, request: HttpRequest) -> HttpResponse:
         user_form = UserCreationForm()
         customer_form = CustomerCreationForm()
@@ -38,4 +41,3 @@ class CustomerCreateView(View):
             "registration/register_customer.html",
             {"user_form": user_form, "customer_form": customer_form},
         )
-
