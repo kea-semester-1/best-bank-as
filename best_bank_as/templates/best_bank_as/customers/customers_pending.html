@@ -1,0 +1,13 @@
+{% extends "best_bank_as/base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>Pending Customers</h2>
+
+
+    <table class="table" hx-target="this" hx-swap="outerHTML">
+        {% include "best_bank_as/customers/customers_table.html" %}
+    </table>
+    
+</div>
+{% endblock %}

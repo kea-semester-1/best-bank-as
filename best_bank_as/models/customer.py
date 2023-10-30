@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import QuerySet, Sum
+from django.db.models import Prefetch, Q, QuerySet, Sum
 
 from best_bank_as import enums
 from best_bank_as.models.account import Account
@@ -21,7 +21,7 @@ class Customer(base_model.BaseModel):
     status = models.IntegerField(
         choices=enums.CustomerStatus.choices,
         default=1,
-        editable=False,  # Should be programmatically set
+        editable=True,  # Should be programmatically set
     )
 
     def get_accounts(self) -> QuerySet[Account]:
@@ -38,6 +38,35 @@ class Customer(base_model.BaseModel):
             account.balance = balance
 
         return accounts
+
+    def update_status(self, status: enums.CustomerStatus) -> "Customer":
+        """Method for updating status on the customer."""
+        self.status = status
+        self.save()
+        return self
+
+    @classmethod
+    def search(cls, query: str) -> QuerySet["Customer"]:
+        """Search for customers based on phone number, username, or account number."""
+        return (
+            cls.objects.filter(
+                Q(phone_number__icontains=query)
+                | Q(user__username__icontains=query)
+                | Q(account__account_number__icontains=query)
+            )
+            .distinct()
+            .select_related("user")
+            .prefetch_related(Prefetch("account_set"))
+        )
+
+    @classmethod
+    def get_pending(cls) -> QuerySet["Customer"]:
+        """Get all pending customers."""
+        return (
+            cls.objects.filter(status=enums.CustomerStatus.PENDING)
+            .select_related("user")
+            .prefetch_related(Prefetch("account_set"))
+        )
 
     def __str__(self) -> str:
         return f"ID: {self.pk}, Username: {self.user.username}, Rank: {self.rank}"

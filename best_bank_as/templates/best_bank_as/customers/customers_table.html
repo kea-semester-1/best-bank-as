@@ -1,0 +1,26 @@
+<thead>
+    <tr>
+        <th>User name</th>
+        <th>Phone</th>
+        <th>Actions</th>
+    </tr>
+</thead>
+<tbody>
+{% for customer in customers %}
+    <tr>
+        <td>{{ customer.user.username }}</td>
+        <td>{{ customer.phone_number }}</td>
+        <td>
+            <button hx-put="{% url 'best_bank_as:approve_customers_details' customer.pk %}"
+                    hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>
+                Approve
+            </button>
+            <button hx-delete="{% url 'best_bank_as:approve_customers_details' customer.pk %}"
+                    hx-confirm="Are you sure you want to reject the customer?"
+                    hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'>
+                Reject
+            </button>
+        </td>
+    </tr>
+{% endfor %}
+</tbody>
