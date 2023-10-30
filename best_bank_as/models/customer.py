@@ -35,7 +35,7 @@ class Customer(base_model.BaseModel):
                 )["amount__sum"]
                 or 0
             )
-            account.balance = -balance  # Reverse the sign of the balance
+            account.balance = balance
 
         return accounts
 

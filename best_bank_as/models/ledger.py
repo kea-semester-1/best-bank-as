@@ -22,14 +22,14 @@ class Ledger(base_model.BaseModel):
         if amount <= 0:
             raise ValueError("Amount must be a positive number.")
 
-        # TODO: Handle this with better error page and handling.
-        if source_account.get_balance() < amount:
-            raise ValueError("Amount cannot be less than balance")
-
         if source_account == destination_account:
             raise ValueError(
                 "Source account and destination account cannot be the same."
             )
+
+        # TODO: Handle this with better error page and handling.
+        if source_account.get_balance() < amount:
+            raise ValueError("Amount cannot be less than balance")
         new_transaction = Transaction.objects.create()
 
         # Source account
