@@ -7,15 +7,25 @@
         <div>
             <button
             hx-get="{% url 'best_bank_as:get_accounts_list'%}"
-            hx-target="#account_target"
+            hx-target="#target"
             >Accounts</button>
+        </div>
+        <div>
+           <form
+                   method="post"
+                   action="{% url 'best_bank_as:get_accounts_list' %}"
+                   hx-target="#target">
+
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Request Account</button>
+            </form>
         </div>
         <div>
             <button
                     hx-get="{% url 'best_bank_as:transfer_money' %}"
-                    hx-target="#transfer_target"
+                    hx-target="#target"
             >Transfer Money</button>
         </div>
-        <div id="account_target"></div>
-        <div id="transfer_target"></div>
+        <div id="target"></div>
     {% endblock %}

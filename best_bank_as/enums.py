@@ -62,9 +62,11 @@ class AccountStatus(BaseEnum):
     
     - `Active` - Account is active
     - `Inactive` - Account is inactive due to a deletion
+    - `Pending` - After customer has requested new account
     """
     ACTIVE = 1
     INACTIVE = 2
+    PENDING = 3
 
 
 class CustomerStatus(BaseEnum):

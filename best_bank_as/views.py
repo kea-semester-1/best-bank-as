@@ -5,6 +5,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from best_bank_as.enums import ApplicationStatus, ApplicationType, CustomerRank
+from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.account import Account
@@ -41,13 +42,20 @@ def profile_page(request: HttpRequest, username: str) -> HttpResponse:
 def get_accounts_list(request: HttpRequest) -> HttpResponse:  # TODO: FIX LOGIC
     """Retrieve all accounts for a given user."""
 
-    customer = get_object_or_404(Customer, user=request.user)
+    if request.method == "GET":
+        customer = get_object_or_404(Customer, user=request.user)
+        accounts = customer.get_accounts()
+        context = {"accounts": accounts}
+        
 
-    accounts = customer.get_accounts()
+    if request.method == "POST":
+        form = NewAccountRequestForm(request.POST)
+        if form.is_valid():
+            new_account = Account.request_new_account(customer=request.user.customer)
+            context = {"data": f'Status: {new_account.account_status}, Account number: {new_account.account_number} '}
+        return render(request, "best_bank_as/accounts/request_account_partial.html", context)
 
-    context = {"accounts": accounts}
     return render(request, "best_bank_as/accounts/account_list.html", context)
-
 
 @login_required
 def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:

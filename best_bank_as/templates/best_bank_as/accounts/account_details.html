@@ -1,7 +1,7 @@
-{% block content %}
-<h3>Details for Account {{ account.account_number }}</h3>
+ <h2>Transactions for Account: {{ account.account_number }}</h2>
+
 {% if transactions %}
-    <table border="3">
+    <table border="1">
         <thead>
             <tr>
                 <th>Transaction ID</th>
@@ -11,19 +11,16 @@
             </tr>
         </thead>
         <tbody>
-            {% for transaction_id, entries in transactions.items %}
-                {% for entry in entries %}
-                    <tr>
-                        <td>{{ transaction_id }}</td>
-                        <td>{{ entry.account_number }}</td>
-                        <td>{{ entry.amount }}</td>
-                        <td>{{ entry.created_at|date:"d M Y H:i" }}</td>
-                    </tr>
-                {% endfor %}
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.transaction_id }}</td>
+                <td>{{ transaction.counterpart_account_number }}</td>
+                <td>{{ transaction.amount }}</td>
+                <td>{{ transaction.date|date:"F d, Y" }}</td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 {% else %}
     <p>No transactions available.</p>
 {% endif %}
-{% endblock %}
