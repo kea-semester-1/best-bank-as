@@ -56,3 +56,16 @@ class AccountType(BaseEnum):
 
     SAVINGS = 1
     CHECKING = 2
+
+
+class CustomerStatus(BaseEnum):
+    """Customer status enum.
+
+    - `PENDING` - Customer is pending
+    - `APPROVED` - Customer is approved
+    - `REJECTED` - Customer is rejected
+    """
+
+    PENDING = 1
+    APPROVED = 2
+    REJECTED = 3
