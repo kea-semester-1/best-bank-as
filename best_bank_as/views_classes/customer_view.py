@@ -38,3 +38,4 @@ class CustomerCreateView(View):
             "registration/register_customer.html",
             {"user_form": user_form, "customer_form": customer_form},
         )
+

@@ -58,6 +58,7 @@ class AccountType(BaseEnum):
     CHECKING = 2
 
 
+
 class CustomerStatus(BaseEnum):
     """Customer status enum.
 

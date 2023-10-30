@@ -19,6 +19,7 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "best_bank_as/index.html")
 
 
+# TODO: Is this the correct way to ensure user can only see his own page
 @login_required
 def profile_page(request: HttpRequest, username: str) -> HttpResponse:
     """View for a user's profile page."""
@@ -37,33 +38,43 @@ def profile_page(request: HttpRequest, username: str) -> HttpResponse:
 
 
 @login_required
-def get_accounts(request: HttpRequest, pk: int) -> HttpResponse:
+def get_accounts_list(request: HttpRequest) -> HttpResponse:  # TODO: FIX LOGIC
     """Retrieve all accounts for a given user."""
-    user = get_object_or_404(User, pk=pk)
-    customer = get_object_or_404(Customer, user=user)
+
+    customer = get_object_or_404(Customer, user=request.user)
 
     accounts = customer.get_accounts()
 
     context = {"accounts": accounts}
-    return render(request, "best_bank_as/accounts/accounts.html", context)
+    return render(request, "best_bank_as/accounts/account_list.html", context)
 
 
 @login_required
-def get_details(request: HttpRequest, pk: int) -> HttpResponse:
+def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given account."""
-
     account = get_object_or_404(Account, pk=pk)
 
-    balance = account.get_balance()
-    transactions = account.get_transactions()
+    if request.user != account.customer.user:
+        return HttpResponseForbidden(
+            render(request, "best_bank_as/error_pages/error_page.html")
+        )
 
-    print("Acc ID:", pk)
-    print("Details:", account)
-    print("Balance:", balance)
+    if request.method == "GET":
+        balance = account.get_balance()
+        transactions = account.get_transactions()
+
+    if request.method == "POST":
+        ...
+
+    if request.method == "PUT":
+        ...
+
+    if request.method == "DELETE":  # TODO: Soft delete
+        ...
 
     context = {"account": account, "balance": balance, "transactions": transactions}
 
-    return render(request, "best_bank_as/accounts/details.html", context)
+    return render(request, "best_bank_as/accounts/account_details.html", context)
 
 
 @login_required

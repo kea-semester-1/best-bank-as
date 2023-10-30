@@ -6,8 +6,8 @@ authors = ["martinlaursen97 <martin_laursen21@hotmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
-django = "^4.2.5"
+python = "3.11.3"
+django = "4.2.5"
 ruff = "^0.0.291"
 black = "^23.9.1"
 mypy = "^1.5.1"
