@@ -20,3 +20,11 @@ class CustomerCreationForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = ["phone_number"]
+
+
+class CustomerApproveForm(forms.ModelForm):
+    """Customer form."""
+
+    class Meta:
+        model = Customer
+        fields = ["status"]
