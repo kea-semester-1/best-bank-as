@@ -172,16 +172,7 @@ def loans_page(request: HttpRequest) -> HttpResponse:
     )
     application.save()
 
-    return redirect("best_bank_as:loans-page")
-
-
-@login_required
-def delete_loan_application(request: HttpRequest, pk: int) -> HttpResponse:
-    """Delete a loan application."""
-    application = get_object_or_404(CustomerApplication, pk=pk)
-    application.delete()
-
-    return redirect("best_bank_as:loans-page")
+    return redirect("best_bank_as:loan_application_list.html")
 
 
 @login_required()

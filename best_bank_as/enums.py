@@ -57,12 +57,14 @@ class AccountType(BaseEnum):
     SAVINGS = 1
     CHECKING = 2
 
+
 class AccountStatus(BaseEnum):
-    """ Account status type
-    
-    - `Active` - Account is active
-    - `Inactive` - Account is inactive due to a deletion
+    """Account status type.
+
+    - `ACTIVE` - Account is active
+    - `INACTIVE` - Account is inactive due to a deletion
     """
+
     ACTIVE = 1
     INACTIVE = 2
 
