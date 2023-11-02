@@ -64,12 +64,11 @@ class AccountStatus(BaseEnum):
     - `Active` - Account is active
     - `Inactive` - Account is inactive due to a deletion
     - `Pending` - After customer has requested new account
-
-    """Account status type.
-
-    - `ACTIVE` - Account is active
-    - `INACTIVE` - Account is inactive due to a deletion
-
+    """
+    
+    ACTIVE = 0
+    INACTIVE = 1
+    PENDING = 2
 
 class CustomerStatus(BaseEnum):
     """Customer status enum.
