@@ -1,14 +1,14 @@
 import random
 import secrets
 from decimal import Decimal
+from typing import Any
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 from django.db import transaction
 
-from best_bank_as import enums
-from best_bank_as.models.customer import Customer
 from best_bank_as.models.account import Account
+from best_bank_as.models.customer import Customer
 from best_bank_as.models.ledger import Ledger
 from best_bank_as.models.transaction import Transaction
 
@@ -64,5 +64,3 @@ class Command(BaseCommand):
 		Ledger.transfer(source_account=bank_account, destination_account=account5, amount=Decimal(value=5000))
 		
 		print("Demo data inserted.")
-		
-		

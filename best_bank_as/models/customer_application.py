@@ -21,5 +21,10 @@ class CustomerApplication(base_model.BaseModel):
         "Customer", on_delete=models.CASCADE, null=True, blank=True
     )
 
+    @property
+    def status_name(self) -> str:
+        """Get status name."""
+        return enums.ApplicationStatus.int_to_enum(self.status)
+
     def __str__(self) -> str:
         return f"{self.customer} - {self.amount}"
