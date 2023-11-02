@@ -66,9 +66,9 @@ class AccountStatus(BaseEnum):
     - `Pending` - After customer has requested new account
     """
     
-    ACTIVE = 0
-    INACTIVE = 1
-    PENDING = 2
+    ACTIVE = 1
+    INACTIVE = 2
+    PENDING = 3
 
 class CustomerStatus(BaseEnum):
     """Customer status enum.
