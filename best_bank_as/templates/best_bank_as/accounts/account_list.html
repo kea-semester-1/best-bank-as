@@ -1,15 +1,25 @@
 <h1>Accounts</h1>
 {% for account in accounts %}
-<a href="#details">
-    <button hx-target="#details" hx-get="{% url 'best_bank_as:get_details' account.pk %}"
-        style="width: 100%; cursor: pointer; text-align: left;">
-        <span>Account number: {{ account.account_number }}</span>
-        <hr>
-        <span>Balance: {{ account.balance }}</span>
-        <hr>
-        <span>Click to see details</span>
-    </button>
-</a>
+    {% if account.account_status == 0 %}
+        <a href="#details">
+        <button hx-target="#details" hx-get="{% url 'best_bank_as:get_details' account.pk %}"
+            style="width: 100%; cursor: pointer; text-align: left;">
+            <span>Account number: {{ account.account_number }}</span>
+            <hr>
+            <span>Balance: {{ account.balance }}</span>
+            <hr>
+            <span>Click to see details</span>
+        </button>
+        </a>
+    {% elif account.account_status == 3 %}
+        <button
+            style="width: 100%; cursor: pointer; text-align: left;">
+            <span>Account number: {{ account.account_number }}</span>
+            <hr>
+            <span>Account status: Pending</span>
+        </button>
+    {% endif %}
+
 {% empty %}
 <span>No accounts available.</span>
 {% endfor %}
