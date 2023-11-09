@@ -5,7 +5,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 
-from best_bank_as.enums import ApplicationStatus, ApplicationType, CustomerRank
+from best_bank_as.enums import ApplicationStatus, ApplicationType, CustomerStatus
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.TransferForm import TransferForm
@@ -13,6 +13,8 @@ from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
+
+from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -47,16 +49,20 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:  # TODO: FIX LOGIC
         customer = get_object_or_404(Customer, user=request.user)
         accounts = customer.get_accounts()
         context = {"accounts": accounts}
-        
 
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
             new_account = Account.request_new_account(customer=request.user.customer)
-            context = {"data": f'Status: {new_account.account_status}, Account number: {new_account.account_number} '}
-        return render(request, "best_bank_as/accounts/request_account_partial.html", context)
+            context = {
+                "data": f"Status: {new_account.account_status}, Account number: {new_account.account_number} "
+            }
+        return render(
+            request, "best_bank_as/accounts/request_account_partial.html", context
+        )
 
     return render(request, "best_bank_as/accounts/account_list.html", context)
+
 
 @login_required
 def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:
@@ -228,3 +234,80 @@ def transfer_money(request: HttpRequest) -> HttpResponse:
     amount = form.cleaned_data["amount"]
     Ledger.transfer(source_account, destination_account_instance, amount)
     return redirect("best_bank_as:index")
+
+
+@login_required
+def get_accounts_for_user(
+    request: HttpRequest, pk: int
+) -> HttpResponse:  # TODO: FIX LOGIC
+    """Retrieve all accounts for a given user."""
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    customer = get_object_or_404(Customer, user=pk)
+
+    accounts = customer.get_accounts()
+
+    context = {"accounts": accounts}
+    return render(request, "best_bank_as/accounts/account_list.html", context)
+
+
+def approve_customers_list(request: HttpRequest) -> HttpResponse:
+    """Get all pending new customers."""
+    customers = Customer.get_pending()
+    return render(
+        request,
+        "best_bank_as/customers/customers_pending.html",
+        {"customers": customers},
+    )
+
+
+def approve_customers_details(request: HttpRequest, pk: int) -> HttpResponse:
+    """Update status on customer, from pending to: Approved or Rejected."""
+    customer = get_object_or_404(Customer, pk=pk)
+
+    if request.method == "PUT":
+        customer.update_status(CustomerStatus.APPROVED)
+
+    if request.method == "DELETE":
+        customer.update_status(CustomerStatus.REJECTED)
+
+    customers = Customer.get_pending()
+
+    return render(
+        request,
+        "best_bank_as/customers/customers_table.html",
+        {"customers": customers},
+    )
+
+
+def new_customer(request: HttpRequest) -> HttpResponse:
+    """Create a new customer profile."""
+    if request.method == "GET":
+        user_form = UserCreationForm()
+        customer_form = CustomerCreationForm()
+
+    if request.method == "POST":
+        user_form = UserCreationForm(request.POST)
+        customer_form = CustomerCreationForm(request.POST)
+
+        if user_form.is_valid() and customer_form.is_valid():
+            # Create User instance
+            new_user = user_form.save(commit=False)
+            new_user.set_password(user_form.cleaned_data["password"])
+            new_user.status = CustomerStatus.PENDING
+            new_user.save()
+
+            # Create Customer instance
+            new_customer = customer_form.save(commit=False)
+            new_customer.user = new_user
+            new_customer.save()
+
+            return redirect("login")
+
+    return render(
+        request,
+        "registration/register_customer.html",
+        {"user_form": user_form, "customer_form": customer_form},
+    )

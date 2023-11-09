@@ -24,3 +24,11 @@ shell: ## Open a shell in the container
 superuser: ## Create superuser
 	@echo "Creating superuser..."
 	docker container exec -it $$(docker ps | grep best-bank-as-web | awk '{print $$1}') python manage.py createsuperuser
+
+provision: ## Create provisions
+	@echo "Creating provision..."
+	docker container exec -it $$(docker ps | grep best-bank-as-web | awk '{print $$1}') python manage.py provision
+
+demodata: ## Create demodata
+	@echo "Creating demodata..."
+	docker container exec -it $$(docker ps | grep best-bank-as-web | awk '{print $$1}') python manage.py demodata
