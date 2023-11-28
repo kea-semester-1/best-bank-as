@@ -1,39 +1,39 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  web:
-    container_name: web
-    build:
-      context: .
-    command: >
-      sh -c "python manage.py runserver 0.0.0.0:8000"
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db-bank_as
-    networks:
-    - best_bank_as_network
-    env_file: .env
-    volumes:
-      - .:/app
-    restart: always
-  
-  db-bank_as:
-    image: postgres:latest
-    ports:
-      - 5438:5432
-    volumes:
-      - bank_as_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=bank_as-db
-      - POSTGRES_USER=bank_as-user
-      - POSTGRES_PASSWORD=password
-    networks:
-    - best_bank_as_network
 
-networks:
-  best_bank_as_network:
-    name: best_bank_as_network
+    db:
+        image: postgres:13-alpine
+        volumes:
+            - db_data:/var/lib/postgresql/data/
+        env_file:
+            - db_${RTE}.env
+
+    app:
+        build: .
+        env_file:
+            - db_${RTE}.env
+        volumes:
+            - .:/app/
+            - static:/static/
+            - media:/media/
+        depends_on:
+            - db
+
+    nginx:
+        build: nginx/
+        ports:
+            - 443:443
+            - 80:80
+        volumes:
+            - ./nginx/${RTE}/conf.d/:/etc/nginx/conf.d/
+            - ./certs/:/etc/letsencrypt/
+            - static:/static/
+            - media:/media/
+        depends_on:
+            - app
 
 volumes:
-  bank_as_data:
+    db_data:
+    static:
+    media:
