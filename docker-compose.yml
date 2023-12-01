@@ -24,7 +24,7 @@ services:
         build: nginx/
         ports:
             - 443:443
-            - 8080:8080
+            - 80:80
         volumes:
             - ./nginx/${RTE}/conf.d/:/etc/nginx/conf.d/
             - ./certs/:/etc/letsencrypt/
