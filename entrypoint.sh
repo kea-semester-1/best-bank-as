@@ -7,7 +7,7 @@ if [ "$RTE" = "dev" ]; then
 
     python manage.py makemigrations --merge
     python manage.py migrate --noinput
-    python manage.py runserver 
+    python manage.py runserver 0.0.0.0:8000 
 
 elif [ "$RTE" = "test" ]; then
 
