@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from django.db import models
 from django.db.models import Sum
@@ -7,8 +7,10 @@ from django.db.models import Sum
 from best_bank_as import enums
 from best_bank_as.enums import AccountStatus
 from best_bank_as.models.core import base_model
-from best_bank_as.models.customer import Customer
 from best_bank_as.models.ledger import Ledger
+
+if TYPE_CHECKING:
+    from best_bank_as.models.customer import Customer
 
 
 class Account(base_model.BaseModel):
@@ -74,7 +76,7 @@ class Account(base_model.BaseModel):
         return transactions
 
     @classmethod
-    def request_new_account(cls, customer: Customer) -> "Account":
+    def request_new_account(cls, customer: "Customer") -> "Account":
         """Request a new account."""
 
         has_pending_account = cls.objects.filter(
