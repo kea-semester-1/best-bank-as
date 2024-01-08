@@ -6,7 +6,12 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
-from best_bank_as.enums import AccountStatus, ApplicationStatus, ApplicationType, CustomerStatus
+from best_bank_as.enums import (
+    AccountStatus,
+    ApplicationStatus,
+    ApplicationType,
+    CustomerStatus,
+)
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
@@ -16,6 +21,7 @@ from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
 
 from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
+
 status_list = [(status.name, status.value) for status in AccountStatus]
 
 
