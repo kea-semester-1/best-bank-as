@@ -11,7 +11,10 @@ from best_bank_as.enums import (
     ApplicationType,
     CustomerStatus,
 )
-from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
+from best_bank_as.forms.customer_form import (
+    CustomerCreationForm,
+    UserCreationForm,
+)
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
@@ -56,21 +59,33 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
     if request.method == "GET":
         customer = get_object_or_404(Customer, user=request.user)
         accounts = customer.get_accounts()
-        context = {"accounts": accounts, "status_list": status_list}
+        context = {
+            "accounts": accounts,
+            "status_list": status_list,
+        }  # Make sure 'status_list' is defined somewhere
+        return render(request, "best_bank_as/accounts/account_list.html", context)
 
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
-            new_account = Account.request_new_account(customer=request.user.customer)
-            response_text = (
-                f"Status: {new_account.account_status}, "
-                f"Account number: {new_account.account_number}"
+            set_account_status = request.POST.get("account_status")
+            set_status = (
+                AccountStatus.Active
+                if set_account_status == "active"
+                else AccountStatus.Pending
             )
+
+            new_account = Account.request_new_account(
+                customer=request.user.customer, status=set_status
+            )
+            response_text = f"Status: {new_account.account_status}, Account number: {new_account.account_number}"
             context = {"data": response_text}
             return render(
                 request, "best_bank_as/accounts/request_account_partial.html", context
             )
 
+    # Default context for GET request if not returned inside the IF block
+    context = {}
     return render(request, "best_bank_as/accounts/account_list.html", context)
 
 

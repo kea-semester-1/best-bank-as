@@ -43,9 +43,9 @@ class Account(base_model.BaseModel):
         List of transactions with:
         - transaction_id: ID of the transaction
         - counterpart_account_number: Account number of the counterpart
-                        in the transaction # noqa: E501
+                                        in the transaction # noqa: E501
         - amount: Amount involved in the transaction
-                        (positive if credit, negative if debit) # noqa: E501
+                                        (positive if credit, negative if debit) # noqa: E501
         - date: Transaction date
         """
 
@@ -76,7 +76,7 @@ class Account(base_model.BaseModel):
         return transactions
 
     @classmethod
-    def request_new_account(cls, customer: "Customer") -> "Account":
+    def request_new_account(cls, customer: "Customer", status: int) -> "Account":
         """Request a new account."""
 
         has_pending_account = cls.objects.filter(
@@ -96,9 +96,7 @@ class Account(base_model.BaseModel):
 
         # Create a new account
         new_account = cls(
-            account_number=new_account_number,
-            customer=customer,
-            account_status=enums.AccountStatus.Pending,
+            account_number=new_account_number, customer=customer, account_status=status
         )
         new_account.save()
         return new_account

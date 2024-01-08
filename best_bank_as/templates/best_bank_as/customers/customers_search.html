@@ -46,6 +46,11 @@
                             {% endfor %}
                             </tbody>
                         </table>
+                        <form action="{% url 'best_bank_as:get_accounts_list' %}" method="post">
+                            <input hidden name="account_status" value="active" type="text">
+                            {% csrf_token %}
+                            <button>Create account</button>
+                        </form>
                     </td>
                 </tr>
                 </tbody>
