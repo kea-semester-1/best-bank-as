@@ -15,7 +15,8 @@ class Command(BaseCommand):
     """Inserting demo data."""
 
     @transaction.atomic
-    def handle(self, **options):
+    def handle(self) -> None:
+        """Inserting demo data."""
         print("Adding demo data...")
 
         bank = User.objects.create_user(

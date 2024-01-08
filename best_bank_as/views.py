@@ -22,7 +22,6 @@ status_list = [(status.name, status.value) for status in AccountStatus]
 
 def index(request: HttpRequest) -> HttpResponse:
 	"""View for index."""
-	
 	return render(request, "best_bank_as/index.html")
 
 
@@ -62,7 +61,9 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
 				f"Account number: {new_account.account_number}"
 			)
 			context = {"data": response_text}
-			return render(request, "best_bank_as/accounts/request_account_partial.html", context)
+			return render(
+				request, "best_bank_as/accounts/request_account_partial.html", context
+			)
 	
 	return render(request, "best_bank_as/accounts/account_list.html", context)
 

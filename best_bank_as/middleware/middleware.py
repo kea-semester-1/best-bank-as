@@ -25,10 +25,12 @@ class NotFoundMiddleware:
 class RequestMethodDictionaryMiddleware:
     """Middleware for handling PUT requests."""
 
-    def __init__(self, get_response):
+    def __init__(self, get_response: HttpResponse) -> None:
+        """Init method."""
         self.get_response = get_response
 
-    def __call__(self, request):
+    def __call__(self, request: HttpRequest) -> None:
+        """Handles the PUT request."""
         if request.method == "PUT":
             request.PUT = QueryDict(request.body)
 

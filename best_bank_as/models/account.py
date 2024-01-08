@@ -7,6 +7,7 @@ from django.db.models import Sum
 from best_bank_as import enums
 from best_bank_as.enums import AccountStatus
 from best_bank_as.models.core import base_model
+from best_bank_as.models.customer import Customer
 from best_bank_as.models.ledger import Ledger
 
 
@@ -39,8 +40,10 @@ class Account(base_model.BaseModel):
         Returns:
         List of transactions with:
         - transaction_id: ID of the transaction
-        - counterpart_account_number: Account number of the counterpart in the transaction
-        - amount: Amount involved in the transaction (positive if credit, negative if debit)
+        - counterpart_account_number: Account number of the counterpart
+                        in the transaction # noqa: E501
+        - amount: Amount involved in the transaction
+                        (positive if credit, negative if debit) # noqa: E501
         - date: Transaction date
         """
 
@@ -62,7 +65,7 @@ class Account(base_model.BaseModel):
             for counterpart in counterpart_entries:
                 transaction_data = {
                     "transaction_id": entry.transaction_id_id,
-                    "counterpart_account_number": counterpart.account_number.account_number,
+                    "counterpart_account_number": counterpart.account_number.account_number,  # noqa: E501
                     "amount": entry.amount,
                     "date": entry.created_at,
                 }
@@ -71,7 +74,7 @@ class Account(base_model.BaseModel):
         return transactions
 
     @classmethod
-    def request_new_account(cls, customer):
+    def request_new_account(cls, customer: Customer) -> "Account":
         """Request a new account."""
 
         has_pending_account = cls.objects.filter(
@@ -97,10 +100,6 @@ class Account(base_model.BaseModel):
         )
         new_account.save()
         return new_account
-
-    # def soft_delete(self) -> None:
-    #    self.account_status = AccountStatus.IN
-    #    self.save()
 
     def update_account_status(self, status_value: int) -> None:
         self.account_status = status_value
