@@ -5,7 +5,13 @@ from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
-from best_bank_as.enums import AccountStatus, ApplicationStatus, ApplicationType
+from best_bank_as.enums import (
+    AccountStatus,
+    ApplicationStatus,
+    ApplicationType,
+    CustomerStatus,
+)
+from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
@@ -244,3 +250,80 @@ def transfer_money(request: HttpRequest) -> HttpResponse:  # TODO: Transaction n
     amount = form.cleaned_data["amount"]
     Ledger.transfer(source_account, destination_account_instance, amount)
     return redirect("best_bank_as:index")
+
+
+@login_required
+def get_accounts_for_user(
+    request: HttpRequest, pk: int
+) -> HttpResponse:  # TODO: FIX LOGIC
+    """Retrieve all accounts for a given user."""
+
+    if not request.user.is_staff:
+        return HttpResponseForbidden()
+
+    customer = get_object_or_404(Customer, user=pk)
+
+    accounts = customer.get_accounts()
+
+    context = {"accounts": accounts}
+    return render(request, "best_bank_as/accounts/account_list.html", context)
+
+
+def approve_customers_list(request: HttpRequest) -> HttpResponse:
+    """Get all pending new customers."""
+    customers = Customer.get_pending()
+    return render(
+        request,
+        "best_bank_as/customers/customers_pending.html",
+        {"customers": customers},
+    )
+
+
+def approve_customers_details(request: HttpRequest, pk: int) -> HttpResponse:
+    """Update status on customer, from pending to: Approved or Rejected."""
+    customer = get_object_or_404(Customer, pk=pk)
+
+    if request.method == "PUT":
+        customer.update_status(CustomerStatus.APPROVED)
+
+    if request.method == "DELETE":
+        customer.update_status(CustomerStatus.REJECTED)
+
+    customers = Customer.get_pending()
+
+    return render(
+        request,
+        "best_bank_as/customers/customers_table.html",
+        {"customers": customers},
+    )
+
+
+def new_customer(request: HttpRequest) -> HttpResponse:
+    """Create a new customer profile."""
+    if request.method == "GET":
+        user_form = UserCreationForm()
+        customer_form = CustomerCreationForm()
+
+    if request.method == "POST":
+        user_form = UserCreationForm(request.POST)
+        customer_form = CustomerCreationForm(request.POST)
+
+        if user_form.is_valid() and customer_form.is_valid():
+            # Create User instance
+            new_user = user_form.save(commit=False)
+            new_user.set_password(user_form.cleaned_data["password"])
+            new_user.status = CustomerStatus.PENDING
+            new_user.save()
+
+            # Create Customer instance
+            new_customer = customer_form.save(commit=False)
+            new_customer.user = new_user
+            new_customer.save()
+
+            return redirect("login")
+
+    return render(
+        request,
+        "registration/register_customer.html",
+        {"user_form": user_form, "customer_form": customer_form},
+    )
