@@ -24,3 +24,11 @@ shell: ## Open a shell in the container
 superuser: ## Create superuser
 	@echo "Creating superuser..."
 	docker container exec -it $$(docker ps | grep best-bank-as-web | awk '{print $$1}') python manage.py createsuperuser
+
+reboot:
+	@echo "Removing containers"
+	docker rm $$(docker ps -aq)
+	@echo "Removing images"
+	docker rmi $$(docker images -q)  
+	@echo "Removing volumes"
+	docker volume rm $$(docker volume ls -q)
