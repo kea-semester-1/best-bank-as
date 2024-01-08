@@ -1,0 +1,24 @@
+<select name="account_status" id="account_status"
+        hx-put="{% url 'best_bank_as:get_details' account.pk %}"
+        hx-headers='{"X-CSRFToken":"{{ csrf_token }}", "Content-Type": "application/json"}'
+        hx-trigger="change delay:1500ms"
+        hx-swap="outerHTML"
+>
+    <option hidden> {{ account.get_account_status_display }}</option>
+
+    {% for status_name, status_value in status_list %}
+        <option style="background: greenyellow" value="{{ status_value }}">{{ status_name }}</option>
+    {% endfor %}
+</select>
+
+<!-- Seperate template?-->
+{% if messages %}
+    {% for message in messages %}
+        {% if message.level_tag == "success" %}
+            <p style="color: greenyellow">{{ message }}</p>
+        {% elif message.level_tag == "error" %}
+            <p style="color: red">{{ message }}</p>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+

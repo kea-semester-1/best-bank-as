@@ -3,6 +3,7 @@ from typing import Any
 
 from django.db import models, transaction
 
+from best_bank_as.enums import AccountStatus
 from best_bank_as.models.core import base_model
 from best_bank_as.models.transaction import Transaction
 
@@ -26,6 +27,9 @@ class Ledger(base_model.BaseModel):
             raise ValueError(
                 "Source account and destination account cannot be the same."
             )
+
+        if destination_account.account_status == AccountStatus.PENDING:
+            raise ValueError("Cannot transfer money to pending account.")
 
         # TODO: Handle this with better error page and handling.
         if source_account.get_balance() < amount:
