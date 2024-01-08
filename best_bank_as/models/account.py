@@ -1,8 +1,9 @@
 from decimal import Decimal
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.db import models
 from django.db.models import Sum
+
 from best_bank_as import enums
 from best_bank_as.enums import AccountStatus
 from best_bank_as.models.core import base_model
