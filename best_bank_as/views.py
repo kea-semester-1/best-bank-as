@@ -1,13 +1,14 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
-
-from best_bank_as.enums import ApplicationStatus, ApplicationType, CustomerStatus
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
+from best_bank_as.enums import AccountStatus, ApplicationStatus, ApplicationType, CustomerStatus
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
+from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
@@ -15,11 +16,14 @@ from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
 
 from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
+status_list = [(status.name, status.value) for status in AccountStatus]
+
+
+# status_list = ["Pending", "Staff Approved", "Inactive"]
 
 
 def index(request: HttpRequest) -> HttpResponse:
     """View for index."""
-
     return render(request, "best_bank_as/index.html")
 
 
@@ -42,24 +46,26 @@ def profile_page(request: HttpRequest, username: str) -> HttpResponse:
 
 
 @login_required
-def get_accounts_list(request: HttpRequest) -> HttpResponse:  # TODO: FIX LOGIC
+def get_accounts_list(request: HttpRequest) -> HttpResponse:
     """Retrieve all accounts for a given user."""
 
     if request.method == "GET":
         customer = get_object_or_404(Customer, user=request.user)
         accounts = customer.get_accounts()
-        context = {"accounts": accounts}
+        context = {"accounts": accounts, "status_list": status_list}
 
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
             new_account = Account.request_new_account(customer=request.user.customer)
-            context = {
-                "data": f"Status: {new_account.account_status}, Account number: {new_account.account_number} "
-            }
-        return render(
-            request, "best_bank_as/accounts/request_account_partial.html", context
-        )
+            response_text = (
+                f"Status: {new_account.account_status}, "
+                f"Account number: {new_account.account_number}"
+            )
+            context = {"data": response_text}
+            return render(
+                request, "best_bank_as/accounts/request_account_partial.html", context
+            )
 
     return render(request, "best_bank_as/accounts/account_list.html", context)
 
@@ -69,7 +75,9 @@ def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given account."""
     account = get_object_or_404(Account, pk=pk)
 
-    if request.user != account.customer.user:
+    context = {"account": account, "status_list": status_list}
+
+    if request.user != account.customer.user and not request.user.is_staff:
         return HttpResponseForbidden(
             render(request, "best_bank_as/error_pages/error_page.html")
         )
@@ -78,17 +86,21 @@ def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:
         balance = account.get_balance()
         transactions = account.get_transactions()
 
-    if request.method == "POST":
-        ...
+        context = {"balance": balance, "transactions": transactions}
 
-    if request.method == "PUT":
-        ...
+    if request.method == "PUT" and request.user.is_staff:
+        data = request.PUT
+        value = data.get("account_status")
+        try:
+            account.update_account_status(value)
+            account.refresh_from_db()
+            messages.success(request, "Account status was successfully updated.")
+        except Exception:  # TODO: Find more specific error
+            messages.error(request, "Something went wrong. Please try again.")
 
-    if request.method == "DELETE":  # TODO: Soft delete
-        ...
-
-    context = {"account": account, "balance": balance, "transactions": transactions}
-
+        return render(
+            request, "best_bank_as/accounts/account_status_partial.html", context
+        )
     return render(request, "best_bank_as/accounts/account_details.html", context)
 
 
@@ -129,8 +141,8 @@ def search_customer(request: HttpRequest) -> HttpResponse:
         )
     )
 
-    context = {"customers": customers, "query": query}
-    return render(request, "best_bank_as/customers/search_results.html", context)
+    context = {"customers": customers, "query": query, "status_list": status_list}
+    return render(request, "best_bank_as/customers/customers_search.html", context)
 
 
 @login_required
@@ -211,7 +223,7 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @login_required()
-def transfer_money(request: HttpRequest) -> HttpResponse:
+def transfer_money(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
     """View to transfer money from account to account."""
     if request.method != "POST":
         return render(
