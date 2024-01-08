@@ -12,13 +12,14 @@ services:
     depends_on:
       - db-bank_as
     networks:
-    - best_bank_as_network
+      - best_bank_as_network
     env_file: .env
     volumes:
       - .:/app
     restart: always
   
   db-bank_as:
+    container_name: db-bank_as
     image: postgres:latest
     ports:
       - 5438:5432
@@ -29,7 +30,7 @@ services:
       - POSTGRES_USER=bank_as-user
       - POSTGRES_PASSWORD=password
     networks:
-    - best_bank_as_network
+      - best_bank_as_network
 
 networks:
   best_bank_as_network:

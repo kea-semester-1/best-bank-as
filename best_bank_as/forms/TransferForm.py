@@ -3,6 +3,7 @@ from typing import Any
 from django import forms
 from django.contrib.auth.models import User
 
+from best_bank_as.enums import AccountStatus
 from best_bank_as.models.account import Account
 
 
@@ -19,5 +20,5 @@ class TransferForm(forms.Form):
     def __init__(self, user: User, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields["source_account"].queryset = Account.objects.filter(
-            customer=user.customer
+            customer=user.customer, account_status=not AccountStatus.PENDING
         )
