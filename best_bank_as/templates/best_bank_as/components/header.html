@@ -1,24 +1,32 @@
 <body>
-    <header>
-        <nav>
-            <ul>
-                {% if user.is_authenticated %}
-                <li><a href="/">Home</a></li>
+<header>
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            {% if user.is_authenticated %}
                 <li><a href="/accounts/logout">Logout</a></li>
-                <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">My Page</a></li>
-                <li><a href="{% url 'best_bank_as:new_loan_application' %}">Apply for loan</a></li>
-                {% if user.is_staff %}
-                <li><a href="{% url 'best_bank_as:staff_page' username=user.username %}">Edit Customers</a></li>
-                <li><a href="{% url 'best_bank_as:approve_customers'%}">Approve Customers</a></li>
-                <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">Approve Loans</a></li>
-                {% endif %}
+                {% if not user.is_staff %}
+                    <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">My Page</a></li>
+                    <li><a href="{% url 'best_bank_as:new_loan_application' %}">Apply for Loan</a></li>
                 {% else %}
-                <li><a href="/">Home</a></li>
-                <li><a href="/accounts/login">Login</a></li>
-                <li><a href="#">3</a></li>
-                <li><a href="#">4</a></li>
+                    <li>
+                        <details role="list">
+                            <summary aria-haspopup="listbox" role="link">Manage Customers</summary>
+                            <ul role="listbox">
+                                <li><a href="{% url 'best_bank_as:staff_page' username=user.username %}">Edit
+                                    Customers</a></li>
+                                <li><a href="{% url 'best_bank_as:customer' %}">Create Customer</a></li>
+                                <li><a href="{% url 'best_bank_as:approve_customers' %}">Approve Customers</a></li>
+                                <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">Approve
+                                    Loans</a></li>
+                            </ul>
+                        </details>
+                    </li>
                 {% endif %}
-            </ul>
-        </nav>
-    </header>
+            {% else %}
+                <li><a href="/accounts/login">Login</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+</header>
 </body>

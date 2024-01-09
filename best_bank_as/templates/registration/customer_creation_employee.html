@@ -1,0 +1,11 @@
+{% extends "best_bank_as/base.html" %}
+
+{% block content %}
+    <h2>Create Customer Account</h2>
+    <form method="post" action="{% url 'best_bank_as:customer' %}">
+        {% csrf_token %}
+        {{ userForm }}
+        {{ customerForm }}
+        <button type="submit">Create Account</button>
+    </form>
+{% endblock %}
