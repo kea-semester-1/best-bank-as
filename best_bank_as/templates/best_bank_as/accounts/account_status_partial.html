@@ -3,11 +3,12 @@
         hx-headers='{"X-CSRFToken":"{{ csrf_token }}", "Content-Type": "application/json"}'
         hx-trigger="change delay:1500ms"
         hx-swap="outerHTML"
+        style="text-transform: capitalize"
 >
     <option hidden> {{ account.get_account_status_display }}</option>
 
     {% for status_name, status_value in status_list %}
-        <option style="background: greenyellow" value="{{ status_value }}">{{ status_name }}</option>
+        <option style="background: greenyellow" value="{{ status_value }}">{{ status_name.lower }}</option>
     {% endfor %}
 </select>
 

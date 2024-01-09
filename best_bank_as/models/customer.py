@@ -46,10 +46,9 @@ class Customer(base_model.BaseModel):
         self.save()
         return self
 
-    def update_rank(self, rank: enums.CustomerRank) -> "Customer":
+    def update_rank(self, rank: int) -> None:
         self.rank = rank
         self.save()
-        return self
 
     @property
     def can_loan(self) -> bool:
