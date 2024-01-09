@@ -43,9 +43,9 @@ class Account(base_model.BaseModel):
         List of transactions with:
         - transaction_id: ID of the transaction
         - counterpart_account_number: Account number of the counterpart
-                                        in the transaction # noqa: E501
+        in the transaction # noqa: E501
         - amount: Amount involved in the transaction
-                                        (positive if credit, negative if debit) # noqa: E501
+        (positive if credit, negative if debit) # noqa: E501
         - date: Transaction date
         """
 
