@@ -4,11 +4,13 @@ from best_bank_as import views
 
 app_name = "best_bank_as"
 
-
 urlpatterns = [
     path("", views.index, name="index"),
     path("profile/<str:username>", views.profile_page, name="profile_page"),
     path("accounts/", views.get_accounts_list, name="get_accounts_list"),
+    path(
+        "accounts/<int:pk>/", views.get_accounts_list, name="get_accounts_list_with_pk"
+    ),
     path("accounts/details/<int:pk>", views.get_account_details, name="get_details"),
     path(
         "staff/accounts/<int:pk>",
@@ -27,7 +29,10 @@ urlpatterns = [
         views.approve_customers_details,
         name="approve_customers_details",
     ),
-    path("register/", views.new_customer, name="create_customer"),
+    # TODO: Figure if register, should just be customer path
+    path("register/", views.customer_list, name="create_customer"),
+    path("customers/", views.customer_list, name="customer"),
+    path("customers/<int:pk>/", views.customer_details, name="customer"),
     # Loan applications
     path(
         "loan-applications/",

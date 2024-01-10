@@ -28,3 +28,12 @@ class CustomerApproveForm(forms.ModelForm):
     class Meta:
         model = Customer
         fields = ["status"]
+
+
+class UserCreationByEmployeeForm(forms.ModelForm):
+    """User form when employee creates a user."""
+
+    class Meta:
+        model = User
+        fields = ["username"]
+        exclude = ("password",)

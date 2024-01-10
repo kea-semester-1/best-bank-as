@@ -4,14 +4,20 @@ from django.contrib.auth.models import User
 from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.crypto import get_random_string
 
 from best_bank_as.enums import (
     AccountStatus,
     ApplicationStatus,
     ApplicationType,
+    CustomerRank,
     CustomerStatus,
 )
-from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
+from best_bank_as.forms.customer_form import (
+    CustomerCreationForm,
+    UserCreationByEmployeeForm,
+    UserCreationForm,
+)
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
@@ -21,9 +27,7 @@ from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
 
 status_list = [(status.name, status.value) for status in AccountStatus]
-
-
-# status_list = ["Pending", "Staff Approved", "Inactive"]
+rank_list = [(rank.name, rank.value) for rank in CustomerRank]
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -56,21 +60,43 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
     if request.method == "GET":
         customer = get_object_or_404(Customer, user=request.user)
         accounts = customer.get_accounts()
-        context = {"accounts": accounts, "status_list": status_list}
+        context = {
+            "accounts": accounts,
+            "status_list": status_list,
+        }  # Make sure 'status_list' is defined somewhere
+        return render(request, "best_bank_as/accounts/account_list.html", context)
 
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
-            new_account = Account.request_new_account(customer=request.user.customer)
+            set_account_status = request.POST.get("account_status")
+            set_status = (
+                AccountStatus.ACTIVE
+                if set_account_status == AccountStatus.ACTIVE.name
+                else AccountStatus.PENDING
+            )
+            pk = request.POST.get("customer_pk")
+
+            if pk is None:
+                customer = request.user.customer
+            else:
+                customer = get_object_or_404(Customer, pk=pk)
+
+            new_account = Account.request_new_account(
+                customer=customer, status=set_status
+            )
+
             response_text = (
-                f"Status: {new_account.account_status}, "
-                f"Account number: {new_account.account_number}"
+                f"Status: {new_account.account_status},"
+                f" Account number: {new_account.account_number}"
             )
             context = {"data": response_text}
             return render(
                 request, "best_bank_as/accounts/request_account_partial.html", context
             )
 
+    # Default context for GET request if not returned inside the IF block
+    context = {}
     return render(request, "best_bank_as/accounts/account_list.html", context)
 
 
@@ -145,7 +171,12 @@ def search_customer(request: HttpRequest) -> HttpResponse:
         )
     )
 
-    context = {"customers": customers, "query": query, "status_list": status_list}
+    context = {
+        "customers": customers,
+        "query": query,
+        "status_list": status_list,
+        "rank_list": rank_list,
+    }
     return render(request, "best_bank_as/customers/customers_search.html", context)
 
 
@@ -298,32 +329,80 @@ def approve_customers_details(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-def new_customer(request: HttpRequest) -> HttpResponse:
+def customer_list(request: HttpRequest) -> HttpResponse:
     """Create a new customer profile."""
     if request.method == "GET":
         user_form = UserCreationForm()
         customer_form = CustomerCreationForm()
 
+        if request.user.is_staff:
+            user_form = UserCreationByEmployeeForm()
+            context = {"userForm": user_form, "customerForm": customer_form}
+            return render(
+                request, "registration/customer_creation_employee.html", context
+            )
+
     if request.method == "POST":
-        user_form = UserCreationForm(request.POST)
-        customer_form = CustomerCreationForm(request.POST)
+        if request.user.is_staff:
+            user_form = UserCreationByEmployeeForm(request.POST)
+            customer_form = CustomerCreationForm(request.POST)
 
-        if user_form.is_valid() and customer_form.is_valid():
-            # Create User instance
-            new_user = user_form.save(commit=False)
-            new_user.set_password(user_form.cleaned_data["password"])
-            new_user.status = CustomerStatus.PENDING
-            new_user.save()
+            if user_form.is_valid() and customer_form.is_valid():
+                # User instance
+                new_user = user_form.save(commit=False)
+                new_user.status = CustomerStatus.APPROVED
+                random_password = get_random_string(length=16)
+                new_user.set_password(random_password)
+                new_user.save()
 
-            # Create Customer instance
-            new_customer = customer_form.save(commit=False)
-            new_customer.user = new_user
-            new_customer.save()
+                # Customer instance
+                new_customer = customer_form.save(commit=False)
+                new_customer.user = new_user
+                new_customer.save()
 
-            return redirect("login")
+        # TODO: Implement email service, providing user with
+        #  their new temporaly password and let them know to reset
+
+        else:
+            user_form = UserCreationForm(request.POST)
+            customer_form = CustomerCreationForm(request.POST)
+            if user_form.is_valid() and customer_form.is_valid():
+                # Create User instance
+                new_user = user_form.save(commit=False)
+                new_user.set_password(user_form.cleaned_data["password"])
+                new_user.status = CustomerStatus.PENDING
+                new_user.save()
+
+                # Create Customer instance
+                new_customer = customer_form.save(commit=False)
+                new_customer.user = new_user
+                new_customer.save()
+
+                return redirect("login")
 
     return render(
         request,
         "registration/register_customer.html",
         {"user_form": user_form, "customer_form": customer_form},
     )
+
+
+def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
+    """Detail view for customers."""
+    if request.method == "PUT" and request.user.is_staff:
+        customer = get_object_or_404(Customer, pk=pk)
+        data = request.PUT
+        value = data.get("customer_rank")
+        try:
+            customer.update_rank(value)
+            customer.refresh_from_db()
+            messages.success(request, "Customer rank successfully updated.")
+        except Exception:  # TODO: Find more specific error
+            messages.error(request, "Some went wrong. Please try again")
+
+        context = {"customer": customer, "rank_list": rank_list}
+        return render(
+            request,
+            "best_bank_as/customers/customer_rank_partial.html",
+            context,
+        )

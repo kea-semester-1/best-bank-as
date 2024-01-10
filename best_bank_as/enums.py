@@ -67,11 +67,10 @@ class AccountStatus(BaseEnum):
     - `Rejected` - Rejected by either staff or supervisor
     """
 
-    # TODO: CAPS
-    Active = 1
-    Inactive = 2
-    Pending = 3
-    Rejected = 4
+    ACTIVE = 1
+    INACTIVE = 2
+    PENDING = 3
+    REJECTED = 4
 
 
 class CustomerStatus(BaseEnum):

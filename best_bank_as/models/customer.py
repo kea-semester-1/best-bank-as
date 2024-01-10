@@ -46,6 +46,10 @@ class Customer(base_model.BaseModel):
         self.save()
         return self
 
+    def update_rank(self, rank: int) -> None:
+        self.rank = rank
+        self.save()
+
     @property
     def can_loan(self) -> bool:
         """Check if customer can loan."""
