@@ -50,5 +50,5 @@ urlpatterns = [
         name="loan_application_details",
     ),
     # Transfers
-    path("transfer/", views.transfer_money, name="transfer_money"),
+    path("transfer/", views.transaction_list, name="transfer_money"),
 ]

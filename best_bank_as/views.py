@@ -258,7 +258,7 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
 
 
 @login_required()
-def transfer_money(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
+def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
     """View to transfer money from account to account."""
     if request.method != "POST":
         return render(
