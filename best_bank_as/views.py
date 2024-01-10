@@ -47,16 +47,20 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:  # TODO: FIX LOGIC
         customer = get_object_or_404(Customer, user=request.user)
         accounts = customer.get_accounts()
         context = {"accounts": accounts}
-        
 
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
             new_account = Account.request_new_account(customer=request.user.customer)
-            context = {"data": f'Status: {new_account.account_status}, Account number: {new_account.account_number} '}
-        return render(request, "best_bank_as/accounts/request_account_partial.html", context)
+            context = {
+                "data": f"Status: {new_account.account_status}, Account number: {new_account.account_number} "
+            }
+        return render(
+            request, "best_bank_as/accounts/request_account_partial.html", context
+        )
 
     return render(request, "best_bank_as/accounts/account_list.html", context)
+
 
 @login_required
 def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:

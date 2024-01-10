@@ -41,7 +41,7 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 if RTE is RuntimeEnvironment.dev:
     DEBUG = True
-    ALLOWED_HOSTS = ["app"]
+    ALLOWED_HOSTS = ["app", "localhost"]
 else:
     DEBUG = False
     ALLOWED_HOSTS = ["what-lol.dk", "www.what-lol.dk"]
