@@ -1,11 +1,14 @@
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING
 
 from django.db import models, transaction
 
 from best_bank_as.enums import AccountStatus
 from best_bank_as.models.core import base_model
 from best_bank_as.models.transaction import Transaction
+
+if TYPE_CHECKING:
+    from best_bank_as.models.account import Account
 
 
 class Ledger(base_model.BaseModel):
@@ -18,7 +21,7 @@ class Ledger(base_model.BaseModel):
     @classmethod
     @transaction.atomic
     def transfer(
-        cls, source_account: Any, destination_account: Any, amount: Decimal
+        cls, source_account: "Account", destination_account: "Account", amount: Decimal
     ) -> None:
         if amount <= 0:
             raise ValueError("Amount must be a positive number.")

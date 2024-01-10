@@ -5,8 +5,8 @@ from django.db.models import Prefetch, Q, QuerySet, Sum
 from best_bank_as import enums
 from best_bank_as.models.account import Account
 from best_bank_as.models.core import base_model
-from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
+from best_bank_as.models.loan_application import LoanApplication
 
 
 class Customer(base_model.BaseModel):
@@ -16,13 +16,13 @@ class Customer(base_model.BaseModel):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     rank = models.IntegerField(
         choices=enums.CustomerRank.choices,
-        default=2,
-        editable=False,  # Should be programmatically set
+        default=enums.CustomerRank.BLUE,
+        editable=False,
     )
     status = models.IntegerField(
         choices=enums.CustomerStatus.choices,
-        default=1,
-        editable=True,  # Should be programmatically set
+        default=enums.CustomerStatus.PENDING,
+        editable=True,
     )
 
     def get_accounts(self) -> QuerySet[Account]:
@@ -52,10 +52,10 @@ class Customer(base_model.BaseModel):
         return self.rank >= enums.CustomerRank.BLUE
 
     @property
-    def loan_applications(self) -> list[tuple[CustomerApplication, str]]:
+    def loan_applications(self) -> list[tuple[LoanApplication, str]]:
         """Get all loan applications for the customer."""
-        loan_applications = CustomerApplication.objects.filter(
-            customer_id=self.pk, type=enums.ApplicationType.LOAN
+        loan_applications = LoanApplication.objects.filter(
+            customer_id=self.pk,
         )
         statuses = [
             enums.ApplicationStatus.int_to_enum(application.status)

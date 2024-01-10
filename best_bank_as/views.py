@@ -5,20 +5,15 @@ from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
-from best_bank_as.enums import (
-    AccountStatus,
-    ApplicationStatus,
-    ApplicationType,
-    CustomerStatus,
-)
+from best_bank_as.enums import AccountStatus, ApplicationStatus, CustomerStatus
 from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
-from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
+from best_bank_as.models.loan_application import LoanApplication
 
 status_list = [(status.name, status.value) for status in AccountStatus]
 
@@ -169,10 +164,9 @@ def new_loan_application(request: HttpRequest) -> HttpResponse:
                 "best_bank_as/error_pages/error_page.html",
             )
         form_data = form.cleaned_data
-        application = CustomerApplication(
+        application = LoanApplication(
             reason=form_data["reason"],
             amount=form_data["amount"],
-            type=ApplicationType.LOAN,
             status=ApplicationStatus.PENDING,
             customer=customer,
         )
@@ -204,7 +198,7 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given loan application."""
 
     customer = get_object_or_404(Customer, user=request.user)
-    application = get_object_or_404(CustomerApplication, pk=pk)
+    application = get_object_or_404(LoanApplication, pk=pk)
     if application.customer != customer:
         return HttpResponseForbidden(
             render(request, "best_bank_as/error_pages/error_page.html")

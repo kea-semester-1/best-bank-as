@@ -4,18 +4,14 @@ from best_bank_as import enums
 from best_bank_as.models.core import base_model
 
 
-class CustomerApplication(base_model.BaseModel):
-    """Model for customer_application."""
+class LoanApplication(base_model.BaseModel):
+    """Model for loan_application."""
 
     reason = models.CharField(max_length=255)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    type = models.IntegerField(
-        choices=enums.ApplicationType.choices,
-        default=1,
-    )
     status = models.IntegerField(
         choices=enums.ApplicationStatus.choices,
-        default=1,
+        default=enums.ApplicationStatus.PENDING,
     )
     customer = models.ForeignKey(
         "Customer", on_delete=models.CASCADE, null=True, blank=True
