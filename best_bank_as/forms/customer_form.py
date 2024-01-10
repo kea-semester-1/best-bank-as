@@ -37,11 +37,3 @@ class UserCreationByEmployeeForm(forms.ModelForm):
         model = User
         fields = ["username"]
         exclude = ("password",)
-
-
-class CustomerCreationByEmployeeForm(forms.ModelForm):
-    """Customer creation form when employee creates."""
-
-    class Meta:
-        model = Customer
-        fields = ["phone_number"]

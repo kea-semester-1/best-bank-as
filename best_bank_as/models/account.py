@@ -76,7 +76,9 @@ class Account(base_model.BaseModel):
         return transactions
 
     @classmethod
-    def request_new_account(cls, customer: "Customer", status: int) -> "Account":
+    def request_new_account(
+        cls, customer: "Customer", status: enums.AccountStatus
+    ) -> "Account":
         """Request a new account."""
 
         has_pending_account = cls.objects.filter(

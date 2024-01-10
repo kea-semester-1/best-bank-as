@@ -47,7 +47,7 @@
                             </tbody>
                         </table>
                         <form action="{% url 'best_bank_as:get_accounts_list' %}" method="post">
-                            <input hidden name="account_status" value="active" type="text">
+                            <input hidden name="account_status" value="ACTIVE" type="text">
                             <input hidden name="customer_pk" value="{{ customer.pk }}" type="text">
                             {% csrf_token %}
                             <button>Create account</button>

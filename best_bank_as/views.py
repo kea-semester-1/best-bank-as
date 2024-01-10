@@ -14,7 +14,6 @@ from best_bank_as.enums import (
     CustomerStatus,
 )
 from best_bank_as.forms.customer_form import (
-    CustomerCreationByEmployeeForm,
     CustomerCreationForm,
     UserCreationByEmployeeForm,
     UserCreationForm,
@@ -73,7 +72,7 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
             set_account_status = request.POST.get("account_status")
             set_status = (
                 AccountStatus.ACTIVE
-                if set_account_status == "active"
+                if set_account_status == AccountStatus.ACTIVE.name
                 else AccountStatus.PENDING
             )
             pk = request.POST.get("customer_pk")
@@ -338,7 +337,6 @@ def customer_list(request: HttpRequest) -> HttpResponse:
 
         if request.user.is_staff:
             user_form = UserCreationByEmployeeForm()
-            customer_form = CustomerCreationByEmployeeForm()
             context = {"userForm": user_form, "customerForm": customer_form}
             return render(
                 request, "registration/customer_creation_employee.html", context
@@ -347,7 +345,7 @@ def customer_list(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         if request.user.is_staff:
             user_form = UserCreationByEmployeeForm(request.POST)
-            customer_form = CustomerCreationByEmployeeForm(request.POST)
+            customer_form = CustomerCreationForm(request.POST)
 
             if user_form.is_valid() and customer_form.is_valid():
                 # User instance
