@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   web:
-    container_name: web
+    container_name: best-bank-as-web
     build:
       context: .
     command: >

@@ -103,8 +103,8 @@ class Account(base_model.BaseModel):
         new_account.save()
         return new_account
 
-    def update_account_status(self, status_value: int) -> None:
-        self.account_status = status_value
+    def update_account_status(self, status: enums.CustomerRank) -> None:
+        self.account_status = status
         self.save()
 
     def __str__(self) -> str:
