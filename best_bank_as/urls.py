@@ -4,7 +4,6 @@ from best_bank_as import views
 
 app_name = "best_bank_as"
 
-
 urlpatterns = [
     path("", views.index, name="index"),
     path("profile/<str:username>", views.profile_page, name="profile_page"),
@@ -45,5 +44,5 @@ urlpatterns = [
         name="loan_application_details",
     ),
     # Transfers
-    path("transfer/", views.transfer_money, name="transfer_money"),
+    path("transfer/", views.transaction, name="transfer_money"),
 ]
