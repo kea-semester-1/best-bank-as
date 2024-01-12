@@ -1,0 +1,15 @@
+{% if customer.user.is_active %}
+    <button
+            hx-delete="{% url 'best_bank_as:customer' customer.pk %}"
+            hx-headers='{"X-CSRFToken":"{{ csrf_token }}", "Content-Type": "application/json"}'
+            hx-swap="outerHTML"
+            type="submit">Set inactive
+    </button>
+{% else %}
+    <button
+            hx-delete="{% url 'best_bank_as:customer' customer.pk %}"
+            hx-headers='{"X-CSRFToken":"{{ csrf_token }}", "Content-Type": "application/json"}'
+            hx-swap="outerHTML"
+            type="submit">Set active
+    </button>
+{% endif %}

@@ -5,60 +5,72 @@
 
     {% if customers %}
         {% for customer in customers %}
+            <h2>Customer details</h2>
             <table border="1">
                 <thead>
                 <tr>
                     <th>Username</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
                     <th>Phone Number</th>
                     <th>Customer Level</th>
-                    <th>Accounts</th>
+                    <th>Customer Status</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
 
-
                     <td>
                         <a href="{% url 'best_bank_as:get_accounts_for_user' customer.user.pk %}">{{ customer.user.username }}</a>
                     </td>
+                    <td>{{ customer.user.first_name }}</td>
+                    <td>{{ customer.user.last_name }}</td>
+                    <td>{{ customer.user.email }}</td>
                     <td>{{ customer.phone_number }}</td>
                     <td>{% include "best_bank_as/customers/customer_rank_partial.html" %}</td>
                     <td>
-                        <table border="1">
-                            <thead>
-                            <tr>
-                                <th>Account Number</th>
-                                <th>Account Type</th>
-                                <th>Account Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for account in customer.account_set.all %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'best_bank_as:get_details' account.pk %}">{{ account.account_number }}</a>
-                                    </td>
-                                    <td>{{ account.get_type_display }}</td>
-                                    <td>
-                                        {% include "best_bank_as/accounts/account_status_partial.html" %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                        <form action="{% url 'best_bank_as:get_accounts_list' %}" method="post">
-                            <input hidden name="account_status" value="ACTIVE" type="text">
-                            <input hidden name="customer_pk" value="{{ customer.pk }}" type="text">
-                            {% csrf_token %}
-                            <button>Create account</button>
-                        </form>
+                        {% include "best_bank_as/customers/customer_active_status.html" %}
                     </td>
+
                 </tr>
                 </tbody>
             </table>
+            <h2>Customer accounts</h2>
+            <table border="1">
+                <thead>
+                <tr>
+                    <th>Account Number</th>
+                    <th>Account Type</th>
+                    <th>Account Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for account in customer.account_set.all %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'best_bank_as:get_details' account.pk %}">{{ account.account_number }}</a>
+                        </td>
+                        <td>{{ account.get_type_display }}</td>
+                        <td>
+                            {% include "best_bank_as/accounts/account_status_partial.html" %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <form action="{% url 'best_bank_as:get_accounts_list' %}" method="post">
+                <input hidden name="account_status" value="ACTIVE" type="text">
+                <input hidden name="customer_pk" value="{{ customer.pk }}" type="text">
+                {% csrf_token %}
+                <button>Create account</button>
+            </form>
 
+            <details>
+                <summary><h2>Update user</h2></summary>
+                {% include "best_bank_as/customers/customer_update.html" %}
+            </details>
         {% endfor %}
-
     {% else %}
         <p>No customers found.</p>
     {% endif %}
