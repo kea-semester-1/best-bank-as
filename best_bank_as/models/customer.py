@@ -1,3 +1,4 @@
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Prefetch, Q, QuerySet, Sum
@@ -49,6 +50,11 @@ class Customer(base_model.BaseModel):
     def update_rank(self, rank: int) -> None:
         self.rank = rank
         self.save()
+
+    def set_customer_active_status(self) -> "Customer":
+        self.user.is_active = not self.user.is_active
+        self.user.save()
+        return self
 
     @property
     def can_loan(self) -> bool:

@@ -81,13 +81,14 @@ class Account(base_model.BaseModel):
     ) -> "Account":
         """Request a new account."""
 
-        has_pending_account = cls.objects.filter(
-            customer=customer,
-            account_status=AccountStatus.PENDING,
-        )
+        if status == AccountStatus.PENDING:
+            has_pending_account = cls.objects.filter(
+                customer=customer,
+                account_status=AccountStatus.PENDING,
+            ).exists()
 
-        if has_pending_account:
-            raise ValueError("Customer already has pending account.")
+            if has_pending_account:
+                raise ValueError("Customer already has pending account.")
 
         latest_account_number = cls.objects.all().order_by("-account_number").first()
 

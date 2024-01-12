@@ -15,8 +15,10 @@ from best_bank_as.enums import (
 )
 from best_bank_as.forms.customer_form import (
     CustomerCreationForm,
+    CustomerUpdateForm,
     UserCreationByEmployeeForm,
     UserCreationForm,
+    UserUpdateForm,
 )
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
@@ -69,10 +71,10 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
-            set_account_status = request.POST.get("account_status")
+            get_account_status = request.POST.get("account_status")
             set_status = (
                 AccountStatus.ACTIVE
-                if set_account_status == AccountStatus.ACTIVE.name
+                if get_account_status == AccountStatus.ACTIVE.name
                 else AccountStatus.PENDING
             )
             pk = request.POST.get("customer_pk")
@@ -176,6 +178,8 @@ def search_customer(request: HttpRequest) -> HttpResponse:
         "query": query,
         "status_list": status_list,
         "rank_list": rank_list,
+        "updateForm": UserUpdateForm,
+        "updateCustomerForm": CustomerUpdateForm,
     }
     return render(request, "best_bank_as/customers/customers_search.html", context)
 
@@ -350,13 +354,13 @@ def customer_list(request: HttpRequest) -> HttpResponse:
             if user_form.is_valid() and customer_form.is_valid():
                 # User instance
                 new_user = user_form.save(commit=False)
-                new_user.status = CustomerStatus.APPROVED
                 random_password = get_random_string(length=16)
                 new_user.set_password(random_password)
                 new_user.save()
 
                 # Customer instance
                 new_customer = customer_form.save(commit=False)
+                new_customer.status = CustomerStatus.APPROVED
                 new_customer.user = new_user
                 new_customer.save()
 
@@ -389,8 +393,9 @@ def customer_list(request: HttpRequest) -> HttpResponse:
 
 def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Detail view for customers."""
+    customer = get_object_or_404(Customer, pk=pk)
+
     if request.method == "PUT" and request.user.is_staff:
-        customer = get_object_or_404(Customer, pk=pk)
         data = request.PUT
         value = data.get("customer_rank")
         try:
@@ -398,11 +403,24 @@ def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
             customer.refresh_from_db()
             messages.success(request, "Customer rank successfully updated.")
         except Exception:  # TODO: Find more specific error
-            messages.error(request, "Some went wrong. Please try again")
+            messages.error(request, "Something went wrong. Please try again")
 
         context = {"customer": customer, "rank_list": rank_list}
         return render(
             request,
             "best_bank_as/customers/customer_rank_partial.html",
             context,
+        )
+
+    if request.method == "DELETE":
+        try:
+            customer.set_customer_active_status()
+            customer.refresh_from_db()
+            messages.success(request, "Customer set as inactive")
+            context = {"customer": customer}
+        except Exception:  # TODO: Find more specific error
+            messages.error(request, "Something went wrong. Please try again")
+
+        return render(
+            request, "best_bank_as/customers/customer_active_status.html", context
         )

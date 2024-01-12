@@ -1,0 +1,15 @@
+<article>
+    <form
+            hx-put="{% url "best_bank_as:customer" customer.pk %}"
+            hx-headers='{"X-CSRFToken":"{{ csrf_token }}", "Content-Type": "application/json"}'
+    >
+
+        <input hidden name="customer_update" value="customer_update" type="text">
+        <input hidden name="customer_pk" value="{{ customer.pk }}" type="text">
+        {% csrf_token %}
+        {{ updateForm }}
+        {{ updateCustomerForm }}
+
+        <button type="submit">Update</button>
+    </form>
+</article>
