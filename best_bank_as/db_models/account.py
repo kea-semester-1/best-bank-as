@@ -6,11 +6,11 @@ from django.db.models import Sum
 
 from best_bank_as import enums
 from best_bank_as.enums import AccountStatus
-from best_bank_as.models.core import base_model
-from best_bank_as.models.ledger import Ledger
+from best_bank_as.db_models.core import base_model
+from best_bank_as.db_models.ledger import Ledger
 
 if TYPE_CHECKING:
-    from best_bank_as.models.customer import Customer
+    from best_bank_as.db_models.customer import Customer
 
 
 class Account(base_model.BaseModel):

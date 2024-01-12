@@ -3,7 +3,7 @@ from typing import Any
 from django.core.management.base import BaseCommand
 
 from best_bank_as import enums
-from best_bank_as.models.account_type import AccountType
+from best_bank_as.db_models.account_type import AccountType
 
 
 class Command(BaseCommand):

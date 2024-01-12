@@ -10,10 +10,12 @@ from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationF
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
-from best_bank_as.models.account import Account
-from best_bank_as.models.customer import Customer
-from best_bank_as.models.ledger import Ledger
-from best_bank_as.models.loan_application import LoanApplication
+from best_bank_as.db_models.account import Account
+from best_bank_as.db_models.customer import Customer
+from best_bank_as.db_models.ledger import Ledger
+from best_bank_as.db_models.loan_application import LoanApplication
+from best_bank_as.models import CustomUser
+from project import settings
 
 status_list = [(status.name, status.value) for status in AccountStatus]
 
@@ -30,7 +32,7 @@ def index(request: HttpRequest) -> HttpResponse:
 @login_required
 def profile_page(request: HttpRequest, username: str) -> HttpResponse:
     """View for a user's profile page."""
-    user = get_object_or_404(User, username=username)
+    user = get_object_or_404(CustomUser, username=username)
 
     customer = get_object_or_404(Customer, user=user)
 
@@ -106,7 +108,7 @@ def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def staff_page(request: HttpRequest, username: str) -> HttpResponse:
     """View for a staff page."""
-    user = get_object_or_404(User, username=username)
+    user = get_object_or_404(CustomUser, username=username)
 
     if request.user != user:
         return HttpResponseForbidden(

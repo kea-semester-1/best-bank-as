@@ -3,16 +3,17 @@ from django.db import models
 from django.db.models import Prefetch, Q, QuerySet, Sum
 
 from best_bank_as import enums
-from best_bank_as.models.account import Account
-from best_bank_as.models.core import base_model
-from best_bank_as.models.ledger import Ledger
-from best_bank_as.models.loan_application import LoanApplication
+from best_bank_as.db_models.account import Account
+from best_bank_as.db_models.core import base_model
+from best_bank_as.db_models.ledger import Ledger
+from best_bank_as.db_models.loan_application import LoanApplication
+from project import settings
 
 
 class Customer(base_model.BaseModel):
     """Model for customer."""
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     rank = models.IntegerField(
         choices=enums.CustomerRank.choices,

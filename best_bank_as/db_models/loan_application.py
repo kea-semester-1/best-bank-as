@@ -1,7 +1,7 @@
 from django.db import models
 
 from best_bank_as import enums
-from best_bank_as.models.core import base_model
+from best_bank_as.db_models.core import base_model
 
 
 class LoanApplication(base_model.BaseModel):
@@ -16,6 +16,8 @@ class LoanApplication(base_model.BaseModel):
     customer = models.ForeignKey(
         "Customer", on_delete=models.CASCADE, null=True, blank=True
     )
+
+    # test
 
     @property
     def status_name(self) -> str:

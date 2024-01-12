@@ -4,11 +4,11 @@ from typing import TYPE_CHECKING
 from django.db import models, transaction
 
 from best_bank_as.enums import AccountStatus
-from best_bank_as.models.core import base_model
-from best_bank_as.models.transaction import Transaction
+from best_bank_as.db_models.core import base_model
+from best_bank_as.db_models.transaction import Transaction
 
 if TYPE_CHECKING:
-    from best_bank_as.models.account import Account
+    from best_bank_as.db_models.account import Account
 
 
 class Ledger(base_model.BaseModel):

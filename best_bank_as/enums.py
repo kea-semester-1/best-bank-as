@@ -10,16 +10,30 @@ class BaseEnum(IntegerChoices):
         return cls.choices[value - 1][1]
 
 
+class UserRole(BaseEnum):
+    """User role enum.
+
+    - `CUSTOMER` - User is a customer.
+    - `STAFF` - User is a staff.
+    - `SUPERVISOR` - User is a supervisor.
+    """
+
+    CUSTOMER = 1
+    STAFF = 2
+    SUPERVISOR = 3
+
 class ApplicationStatus(BaseEnum):
     """
     Application status enum.
 
     - `PENDING` - Application is pending.
-    - `EMPLOYEE_APPROVED` - Application is approved by employee,
+    
+    - `EMPLOYEE_APPROVED` - Application is approved by employee, 
         and is pending supervisor approval.
 
-    - `SUPERVISOR_APPROVED` - Application is approved by supervisor,
+    - `SUPERVISOR_APPROVED` - Application is approved by supervisor, 
         and loan is granted.
+
     - `REJECTED` - Application is rejected.
     """
 
