@@ -1,21 +1,19 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.db.models import Prefetch, Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 
+from best_bank_as.db_models.account import Account
+from best_bank_as.db_models.customer import Customer
+from best_bank_as.db_models.ledger import Ledger
+from best_bank_as.db_models.loan_application import LoanApplication
 from best_bank_as.enums import AccountStatus, ApplicationStatus, CustomerStatus
 from best_bank_as.forms.customer_form import CustomerCreationForm, UserCreationForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
-from best_bank_as.db_models.account import Account
-from best_bank_as.db_models.customer import Customer
-from best_bank_as.db_models.ledger import Ledger
-from best_bank_as.db_models.loan_application import LoanApplication
 from best_bank_as.models import CustomUser
-from project import settings
 
 status_list = [(status.name, status.value) for status in AccountStatus]
 
@@ -322,4 +320,14 @@ def new_customer(request: HttpRequest) -> HttpResponse:
         request,
         "registration/register_customer.html",
         {"user_form": user_form, "customer_form": customer_form},
+    )
+
+
+def approve_loan_applications_list(request: HttpRequest) -> HttpResponse:
+    """Get all pending loan applications."""
+    applications = LoanApplication.get_pending()
+    return render(
+        request,
+        "best_bank_as/loans/loan_applications_pending.html",
+        {"applications": applications},
     )

@@ -1,0 +1,19 @@
+<body>
+    {% extends "best_bank_as/base.html" %}
+    {% block content %}
+
+    {% if loan_application %}
+    <h1>Your loan application</h1>
+    <p>Status: {{ status_name }}</p>
+    <p>Loan amount: {{ loan_application.amount }}</p>
+    <p>Reason: {{ loan_application.reason }}</p>
+    {% endif %}
+
+    <button hx-delete="{% url 'best_bank_as:loan_application_details' loan_application.pk %}"
+        hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
+        hx-confirm="Are you sure you want to delete the loan application?">Delete
+    </button>
+
+
+    {% endblock %}
+</body>

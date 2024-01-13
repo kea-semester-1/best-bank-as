@@ -6,7 +6,7 @@ from best_bank_as.db_models.customer import Customer
 from best_bank_as.db_models.ledger import Ledger
 from best_bank_as.db_models.loan_application import LoanApplication
 from best_bank_as.db_models.transaction import Transaction
-from best_bank_as.models import CustomUser 
+from best_bank_as.models import CustomUser
 
 # Register your models here.
 

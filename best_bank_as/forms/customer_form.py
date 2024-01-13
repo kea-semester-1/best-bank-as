@@ -1,7 +1,7 @@
 from django import forms
-from django.contrib.auth.models import User
 
 from best_bank_as.db_models.customer import Customer
+from best_bank_as.models import CustomUser
 
 
 class UserCreationForm(forms.ModelForm):
@@ -10,7 +10,7 @@ class UserCreationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput())
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = ["username", "password"]
 
 

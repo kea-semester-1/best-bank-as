@@ -36,7 +36,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "best_bank_as",
-
 ]
 
 MIDDLEWARE = [
@@ -131,4 +130,3 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 AUTH_USER_MODEL = "best_bank_as.CustomUser"
-    

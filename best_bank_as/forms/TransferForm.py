@@ -3,8 +3,8 @@ from typing import Any
 from django import forms
 from django.contrib.auth.models import User
 
-from best_bank_as.enums import AccountStatus
 from best_bank_as.db_models.account import Account
+from best_bank_as.enums import AccountStatus
 
 
 class TransferForm(forms.Form):

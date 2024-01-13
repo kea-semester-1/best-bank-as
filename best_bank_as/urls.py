@@ -23,10 +23,20 @@ urlpatterns = [
         name="approve_customers",
     ),
     path(
+        "staff/approve/loan-applications",
+        views.approve_loan_applications_list,
+        name="approve_loan_applications",
+    ),
+    path(
         "staff/approve/customers/<int:pk>",
         views.approve_customers_details,
         name="approve_customers_details",
     ),
+    # path(
+    #    "staff/approve/loan-applications",
+    #    views.approve_loan_applications_list,
+    #    name="approve_loan_applications",
+    # ),
     path("register/", views.new_customer, name="create_customer"),
     # Loan applications
     path(

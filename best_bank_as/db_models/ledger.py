@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 
 from django.db import models, transaction
 
-from best_bank_as.enums import AccountStatus
 from best_bank_as.db_models.core import base_model
 from best_bank_as.db_models.transaction import Transaction
+from best_bank_as.enums import AccountStatus
 
 if TYPE_CHECKING:
     from best_bank_as.db_models.account import Account

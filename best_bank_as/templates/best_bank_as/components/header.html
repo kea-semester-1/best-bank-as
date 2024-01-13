@@ -10,7 +10,7 @@
                 {% if user.is_staff %}
                 <li><a href="{% url 'best_bank_as:staff_page' username=user.username %}">Edit Customers</a></li>
                 <li><a href="{% url 'best_bank_as:approve_customers'%}">Approve Customers</a></li>
-                <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">Approve Loans</a></li>
+                <li><a href="{% url 'best_bank_as:approve_loans'%}">Loan Applications</a></li>
                 {% endif %}
                 {% else %}
                 <li><a href="/">Home</a></li>
