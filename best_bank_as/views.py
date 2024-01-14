@@ -325,9 +325,9 @@ def new_customer(request: HttpRequest) -> HttpResponse:
 
 def approve_loan_applications_list(request: HttpRequest) -> HttpResponse:
     """Get all pending loan applications."""
-    applications = LoanApplication.get_pending()
+    applications = LoanApplication.formatted_by_filter()
     return render(
         request,
-        "best_bank_as/loans/loan_applications_pending.html",
-        {"applications": applications},
+        "best_bank_as/loans/loan_application_list_staff.html",
+        {"loan_applications": applications},
     )

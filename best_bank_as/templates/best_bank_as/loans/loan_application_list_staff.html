@@ -1,0 +1,17 @@
+<body>
+    {% extends "best_bank_as/base.html" %}
+    {% block content %}
+
+    {% if loan_applications %}
+    {% for application, status in loan_applications %}
+    <a href="{% url 'best_bank_as:loan_application_details' application.pk %}">
+        <p>Status: {{ status }}</p>
+        <p>Loan amount: {{ application.amount }}</p>
+        <p>Reason: {{ application.reason }}</p>
+    </a>
+    {% endfor %}
+    {% endif %}
+
+
+    {% endblock %}
+</body>

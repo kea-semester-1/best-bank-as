@@ -1,3 +1,4 @@
+from typing import Any
 from django.db import models
 
 from best_bank_as import enums
@@ -23,6 +24,16 @@ class LoanApplication(base_model.BaseModel):
     def status_name(self) -> str:
         """Get status name."""
         return enums.ApplicationStatus.int_to_enum(self.status)
+    
+    @staticmethod
+    def formatted_by_filter(**kwargs: Any) -> list[tuple["LoanApplication", str]]:
+        loan_applications = LoanApplication.objects.filter(**kwargs)
+        statuses = [
+            enums.ApplicationStatus.int_to_enum(application.status)
+            for application in loan_applications
+        ]
+
+        return list(zip(loan_applications, statuses))
 
     def __str__(self) -> str:
         return f"{self.customer} - {self.amount}"

@@ -54,14 +54,7 @@ class Customer(base_model.BaseModel):
     @property
     def loan_applications(self) -> list[tuple[LoanApplication, str]]:
         """Get all loan applications for the customer."""
-        loan_applications = LoanApplication.objects.filter(
-            customer_id=self.pk,
-        )
-        statuses = [
-            enums.ApplicationStatus.int_to_enum(application.status)
-            for application in loan_applications
-        ]
-        return list(zip(loan_applications, statuses, strict=True))
+        return LoanApplication.formatted_by_filter(customer_id=self.pk)
 
     @classmethod
     def search(cls, query: str) -> QuerySet["Customer"]:
