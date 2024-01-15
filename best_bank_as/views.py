@@ -395,22 +395,35 @@ def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Detail view for customers."""
     customer = get_object_or_404(Customer, pk=pk)
 
-    if request.method == "PUT" and request.user.is_staff:
+    if request.method == "PUT":
+        customer_form = CustomerUpdateForm(request.PUT)
+        user_form = UserUpdateForm(request.PUT)
         data = request.PUT
-        value = data.get("customer_rank")
-        try:
-            customer.update_rank(value)
+        customer_rank_value = data.get("customer_rank")
+        
+        if request.user.is_staff and customer_rank_value:
+            try:
+                customer.update_rank(customer_rank_value)
+                customer.refresh_from_db()
+                messages.success(request, "Customer rank successfully updated.")
+            except Exception:  # TODO: Find more specific error
+                messages.error(request, "Something went wrong. Please try again")
+            
+            context = {"customer": customer, "rank_list": rank_list}
+            return render(
+                request,
+                "best_bank_as/customers/customer_rank_partial.html",
+                context,
+            )
+        
+        if customer_form.is_valid() and user_form.is_valid():
+            
+            customer.update_customer_fields(**customer_form.cleaned_data)
+            customer.update_customer_fields(**user_form.cleaned_data)
             customer.refresh_from_db()
-            messages.success(request, "Customer rank successfully updated.")
-        except Exception:  # TODO: Find more specific error
-            messages.error(request, "Something went wrong. Please try again")
-
-        context = {"customer": customer, "rank_list": rank_list}
-        return render(
-            request,
-            "best_bank_as/customers/customer_rank_partial.html",
-            context,
-        )
+            messages.success(request, "Customer successfully updated.")
+            context = {"customer": customer, "updateCustomerForm": CustomerUpdateForm, "updateForm": UserUpdateForm }
+            return render(request, "best_bank_as/customers/customer_update.html", context)
 
     if request.method == "DELETE":
         try:
