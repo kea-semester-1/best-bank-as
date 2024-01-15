@@ -400,7 +400,7 @@ def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
         user_form = UserUpdateForm(request.PUT)
         data = request.PUT
         customer_rank_value = data.get("customer_rank")
-        
+
         if request.user.is_staff and customer_rank_value:
             try:
                 customer.update_rank(customer_rank_value)
@@ -408,22 +408,27 @@ def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
                 messages.success(request, "Customer rank successfully updated.")
             except Exception:  # TODO: Find more specific error
                 messages.error(request, "Something went wrong. Please try again")
-            
+
             context = {"customer": customer, "rank_list": rank_list}
             return render(
                 request,
                 "best_bank_as/customers/customer_rank_partial.html",
                 context,
             )
-        
+
         if customer_form.is_valid() and user_form.is_valid():
-            
             customer.update_customer_fields(**customer_form.cleaned_data)
             customer.update_customer_fields(**user_form.cleaned_data)
             customer.refresh_from_db()
             messages.success(request, "Customer successfully updated.")
-            context = {"customer": customer, "updateCustomerForm": CustomerUpdateForm, "updateForm": UserUpdateForm }
-            return render(request, "best_bank_as/customers/customer_update.html", context)
+            context = {
+                "customer": customer,
+                "updateCustomerForm": CustomerUpdateForm,
+                "updateForm": UserUpdateForm,
+            }
+            return render(
+                request, "best_bank_as/customers/customer_update.html", context
+            )
 
     if request.method == "DELETE":
         try:

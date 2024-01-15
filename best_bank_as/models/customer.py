@@ -1,4 +1,4 @@
-
+from typing import Any
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Prefetch, Q, QuerySet, Sum
@@ -48,19 +48,19 @@ class Customer(base_model.BaseModel):
         return self
 
     def update_rank(self, rank: int) -> None:
-        """ Method for updating rank on the customer. """
+        """Method for updating rank on the customer."""
         self.rank = rank
         self.save()
 
     def set_customer_active_status(self) -> "Customer":
-        """ Set customer status.
-            This will act as a solft delete.
+        """Set customer status.
+        This will act as a solft delete.
         """
         self.user.is_active = not self.user.is_active
         self.user.save()
         return self
 
-    def update_customer_fields(self, **kwargs) -> "Customer":
+    def update_customer_fields(self, **kwargs: Any) -> "Customer":
         """Update customer fields."""
         for key, value in kwargs.items():
             if value is not None and value != "":
@@ -71,7 +71,7 @@ class Customer(base_model.BaseModel):
         self.user.save()
         self.save()
         return self
-    
+
     @property
     def can_loan(self) -> bool:
         """Check if customer can loan."""
