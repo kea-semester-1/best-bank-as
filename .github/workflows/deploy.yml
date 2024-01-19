@@ -26,4 +26,5 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
-          script: ls
+          script: |
+            echo "hello world"
