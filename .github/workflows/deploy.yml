@@ -1,10 +1,6 @@
-name: Deploy Django Application
+name: Deploy
 
-on:
-  push:
-    branches:
-      - main
-      - deploy-project
+on: [push]
 
 jobs:
   build:
@@ -18,8 +14,8 @@ jobs:
         env:
           HOST: ${{ secrets.SERVER_HOST }}
           USERNAME: ${{ secrets.SERVER_USERNAME }}
-          PORT: ${{ secrets.SERVER_PORT }}
-          KEY: ${{ secrets.SERVER_SSH_KEY }}
+          PORT: ${{ secrets.SERVER_PORT}}
+          KEY: ${{ secrets.SERVER_SSH_KEY}}
         with:
           source: "."
           target: "/var/www/mywebsite"
@@ -27,7 +23,7 @@ jobs:
       - name: Executing remote command
         uses: appleboy/ssh-action@master
         with:
-          HOST: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.SERVER_HOST }}
           USERNAME: ${{ secrets.SERVER_USERNAME }}
           PORT: ${{ secrets.SERVER_PORT }}
           KEY: ${{ secrets.SERVER_SSH_KEY }}
