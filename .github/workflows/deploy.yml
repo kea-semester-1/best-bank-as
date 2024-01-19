@@ -22,5 +22,5 @@ jobs:
           envs: RTE, DJANGO_SECRET_KEY, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
           script: |
             cd projects/best-bank-as
-            docker-compose -f docker-compose.yml up --build -d
-        
+            tmux new-session -d -s deploy-session 'docker-compose -f docker-compose.yml up --build -d'
+            tmux wait-for -S deploy-done
