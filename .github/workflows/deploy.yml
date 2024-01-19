@@ -26,6 +26,4 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          script: |
-            tmux new-session -d -s mysession
-            tmux send-keys -t mysession "ld" C-m
+          script: ls
