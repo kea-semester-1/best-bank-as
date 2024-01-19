@@ -21,6 +21,4 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           envs: RTE, DJANGO_SECRET_KEY, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
           script: |
-            cd projects/best-bank-as
-            tmux new-session -d -s deploy-session 'docker-compose -f docker-compose.yml up --build -d'
-            tmux wait-for -S deploy-done
+            ls
