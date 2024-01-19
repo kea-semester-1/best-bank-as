@@ -34,4 +34,5 @@ jobs:
             git pull
 
             # Run Docker Compose
+            docker-compose down
             RTE=prod docker-compose -f docker-compose.yml up --build -d
