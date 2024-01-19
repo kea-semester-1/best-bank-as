@@ -27,5 +27,5 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd /home/mohamedibrahim/projects/best-bank-as
-            git pull origin main
+            tmux new-session -d -s mysession
+            tmux send-keys -t mysession "ld" C-m
