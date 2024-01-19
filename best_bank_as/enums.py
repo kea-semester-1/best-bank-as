@@ -59,16 +59,19 @@ class AccountType(BaseEnum):
 
 
 class AccountStatus(BaseEnum):
-    """ Account status type
-    
-    - `Active` - Account is active
+    """Account status type.
+
+    - `Active` - Account is active & is approved by staff and supervisor
     - `Inactive` - Account is inactive due to a deletion
     - `Pending` - After customer has requested new account
+    - `Rejected` - Rejected by either staff or supervisor
     """
-    
+
     ACTIVE = 1
     INACTIVE = 2
     PENDING = 3
+    REJECTED = 4
+
 
 class CustomerStatus(BaseEnum):
     """Customer status enum.

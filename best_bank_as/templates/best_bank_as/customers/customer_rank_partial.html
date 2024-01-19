@@ -1,0 +1,13 @@
+<select name="customer_rank" id="customer_rank"
+        hx-put="{% url 'best_bank_as:customer' customer.pk %}"
+        hx-headers='{"X-CSRFToken":"{{ csrf_token }}", "Content-Type": "application/json"}'
+        hx-trigger="change delay:1500ms"
+        hx-swap="outerHTML"
+        style="text-transform: capitalize"
+>
+    <option hidden> {{ customer.get_rank_display }}</option>
+
+    {% for rank_name, rank_value in rank_list %}
+        <option value="{{ rank_value }}">{{ rank_name.lower }}</option>
+    {% endfor %}
+</select>

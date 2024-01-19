@@ -25,10 +25,18 @@ superuser: ## Create superuser
 	@echo "Creating superuser..."
 	docker container exec -it $$(docker ps | grep best-bank-as-web | awk '{print $$1}') python manage.py createsuperuser
 
-reboot:
+reboot: # Remove container, images and volumes
 	@echo "Removing containers"
 	docker rm $$(docker ps -aq)
 	@echo "Removing images"
 	docker rmi $$(docker images -q)  
 	@echo "Removing volumes"
 	docker volume rm $$(docker volume ls -q)
+
+provision: ## Create provisions
+	@echo "Creating provision..."
+	docker container exec -it $$(docker ps | grep best-bank-as-web | awk '{print $$1}') python manage.py provision
+
+demodata: ## Create demodata
+	@echo "Creating demodata..."
+	docker container exec -it $$(docker ps | grep best-bank-as-web | awk '{print $$1}') python manage.py demodata
