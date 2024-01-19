@@ -20,13 +20,6 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           envs: RTE, DJANGO_SECRET_KEY, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
           script: |
-            # Set Environment Variables
-            export RTE=${{ secrets.RTE }}
-            export DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
-            export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
-            export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-            export POSTGRES_DB=${{ secrets.POSTGRES_DB }}
-
             cd projects/best-bank-as
 
             # Pull the latest changes
@@ -34,4 +27,4 @@ jobs:
 
             # Run Docker Compose
             docker-compose down
-            RTE=prod docker-compose -f docker-compose.yml up --build -d
+            sudo RTE=prod docker-compose -f docker-compose.yml up --build -d
