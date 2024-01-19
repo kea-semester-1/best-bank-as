@@ -1,12 +1,21 @@
-name: Deploy
+name: Deploy Django Application
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+      - deploy-project
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v1
+
+      - name: Print Username for Debugging
+        run: echo "Username is ${{ secrets.SERVER_USERNAME }}"
+
       - uses: actions/checkout@v1
 
       - name: Copy repository contents via scp
