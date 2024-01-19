@@ -27,4 +27,5 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            ls
+            cd /home/mohamedibrahim/projects/best-bank-as
+            git pull origin main
