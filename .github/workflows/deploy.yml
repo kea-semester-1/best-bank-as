@@ -27,5 +27,4 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            echo "hello world"
-          ssh_options: -T # Add this line to disable pseudo-terminal allocation
+            ls
