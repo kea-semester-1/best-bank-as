@@ -25,11 +25,11 @@ from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
-from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
+from best_bank_as.models.loan_application import LoanApplication
 
-status_list = [(status.name, status.value) for status in AccountStatus]
-rank_list = [(rank.name, rank.value) for rank in CustomerRank]
+status_list = AccountStatus.name_value_pairs()
+rank_list = CustomerRank.name_value_pairs()
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -71,10 +71,11 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
-            get_account_status = request.POST.get("account_status")
-            set_status = (
-                AccountStatus.ACTIVE
-                if get_account_status == AccountStatus.ACTIVE.name
+            request_status = request.POST.get("request_status")
+            request_status = AccountStatus(request_status)
+            status: AccountStatus = (
+                AccountStatus.ACTIVE  # type: ignore
+                if request_status == AccountStatus.ACTIVE
                 else AccountStatus.PENDING
             )
             pk = request.POST.get("customer_pk")
@@ -84,9 +85,7 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
             else:
                 customer = get_object_or_404(Customer, pk=pk)
 
-            new_account = Account.request_new_account(
-                customer=customer, status=set_status
-            )
+            new_account = Account.request_new_account(customer=customer, status=status)
 
             response_text = (
                 f"Status: {new_account.account_status},"
@@ -204,7 +203,7 @@ def new_loan_application(request: HttpRequest) -> HttpResponse:
                 "best_bank_as/error_pages/error_page.html",
             )
         form_data = form.cleaned_data
-        application = CustomerApplication(
+        application = LoanApplication(
             reason=form_data["reason"],
             amount=form_data["amount"],
             type=ApplicationType.LOAN,
@@ -239,7 +238,7 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given loan application."""
 
     customer = get_object_or_404(Customer, user=request.user)
-    application = get_object_or_404(CustomerApplication, pk=pk)
+    application = get_object_or_404(LoanApplication, pk=pk)
     if application.customer != customer:
         return HttpResponseForbidden(
             render(request, "best_bank_as/error_pages/error_page.html")

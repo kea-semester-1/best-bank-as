@@ -5,8 +5,8 @@ from django.db.models import Prefetch, Q, QuerySet, Sum
 from best_bank_as import enums
 from best_bank_as.models.account import Account
 from best_bank_as.models.core import base_model
-from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
+from best_bank_as.models.loan_application import LoanApplication
 
 
 class Customer(base_model.BaseModel):
@@ -61,9 +61,9 @@ class Customer(base_model.BaseModel):
         return self.rank >= enums.CustomerRank.BLUE
 
     @property
-    def loan_applications(self) -> list[tuple[CustomerApplication, str]]:
+    def loan_applications(self) -> list[tuple[LoanApplication, str]]:
         """Get all loan applications for the customer."""
-        loan_applications = CustomerApplication.objects.filter(
+        loan_applications = LoanApplication.objects.filter(
             customer_id=self.pk, type=enums.ApplicationType.LOAN
         )
         statuses = [

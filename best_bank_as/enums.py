@@ -9,6 +9,11 @@ class BaseEnum(IntegerChoices):
         """Convert an integer to a string representation of an enum."""
         return cls.choices[value - 1][1]
 
+    @classmethod
+    def name_value_pairs(cls) -> list[tuple[str, int]]:
+        """Get name value pairs."""
+        return [(name, value) for name, value in cls.choices]
+
 
 class ApplicationStatus(BaseEnum):
     """
@@ -84,3 +89,16 @@ class CustomerStatus(BaseEnum):
     PENDING = 1
     APPROVED = 2
     REJECTED = 3
+
+
+class LoanStatus(BaseEnum):
+    """Loan status enum.
+
+    - `IN_PROGRESS` - Loan is in progress
+    - `PAID` - Loan is paid
+    - `ABORTED` - Loan is aborted
+    """
+
+    IN_PROGRESS = 1
+    PAID = 2
+    ABORTED = 3
