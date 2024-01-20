@@ -40,7 +40,7 @@ else:
 # SECURITY WARNING: don't run with debug turned on in production!
 if RTE is RuntimeEnvironment.dev:
     DEBUG = True
-    ALLOWED_HOSTS = ["app", "localhost"]
+    ALLOWED_HOSTS = ["app", "localhost", "127.0.0.1"]
 else:
     DEBUG = False
     ALLOWED_HOSTS = ["what-lol.dk", "www.what-lol.dk"]
@@ -154,3 +154,4 @@ SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = ["https://what-lol.dk", "https://www.what-lol.dk"]
