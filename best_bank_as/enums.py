@@ -19,24 +19,16 @@ class ApplicationStatus(BaseEnum):
     """
     Application status enum.
 
-    - `PENDING` - Application is pending.
-    - `APPROVED` - Application is approved.
-    - `REJECTED` - Application is rejected.
+    - `PENDING` - Application is pending
+    - `EMPLOYEE_APPROVED` - Application is approved by employee
+    - `SUPERVISOR_APPROVED` - Application is approved by supervisor
+    - `REJECTED` - Application is rejected
     """
 
     PENDING = 1
-    APPROVED = 2
-    REJECTED = 3
-
-
-class ApplicationType(BaseEnum):
-    """
-    Application type enum.
-
-    - `LOAN` - Application is for a loan.
-    """
-
-    LOAN = 1
+    EMPLOYEE_APPROVED = 2
+    SUPERVISOR_APPROVED = 3
+    REJECTED = 4
 
 
 class CustomerRank(BaseEnum):

@@ -1,12 +1,20 @@
 <body>
-    {% extends "best_bank_as/base.html" %}
     {% block content %}
-    {% include "best_bank_as/loans/loan_application_form.html" %}
 
     {% if loan_applications %}
+
+    {% if is_customer %}
     <h1>Your loan applications</h1>
+    {% else %}
+    <h1>Loan applications</h1>
+    {% endif %}
+
     {% for application, status in loan_applications %}
+    {% if is_customer %}
     <a href="{% url 'best_bank_as:loan_application_details' application.pk %}">
+    {% else %}
+    <a href="{% url 'best_bank_as:staff_loan_application_details' application.pk %}">
+    {% endif %}
         <p>Status: {{ status }}</p>
         <p>Loan amount: {{ application.amount }}</p>
         <p>Reason: {{ application.reason }}</p>

@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.auth.models import User
 from django.db import models
 
@@ -20,16 +22,53 @@ class LoanApplication(base_model.BaseModel):
     )
 
     employee_approved = models.OneToOneField(
-        User, on_delete=models.CASCADE, null=True, blank=True, related_name="employee"
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="employee",
     )
     supervisor_approved = models.OneToOneField(
-        User, on_delete=models.CASCADE, null=True, blank=True, related_name="supervisor"
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="supervisor",
     )
 
     @property
     def status_name(self) -> str:
         """Get status name."""
         return enums.ApplicationStatus.int_to_enum(self.status)
+
+    def reject(self) -> None:
+        """Soft delete the loan application."""
+        self.status = enums.ApplicationStatus.REJECTED
+        self.save()
+
+    def employee_approve(self, user: User) -> None:
+        """Employee approve the loan application."""
+        self.status = enums.ApplicationStatus.EMPLOYEE_APPROVED
+        self.employee_approved = user
+        self.save()
+
+    def supervisor_approve(self, user: User) -> None:
+        """Supervisor approve the loan application."""
+        self.status = enums.ApplicationStatus.SUPERVISOR_APPROVED
+        self.supervisor_approved = user
+        self.save()
+
+    @classmethod
+    def filter_fmt(
+        cls, **filter_params: dict[str, Any]
+    ) -> list[tuple["LoanApplication", str]]:
+        """Filter and format loan applications."""
+        loan_applications = cls.objects.filter(**filter_params)
+        statuses = [
+            enums.ApplicationStatus.int_to_enum(application.status)
+            for application in loan_applications
+        ]
+        return list(zip(loan_applications, statuses, strict=True))
 
     def __str__(self) -> str:
         return f"{self.customer} - {self.amount}"

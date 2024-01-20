@@ -6,10 +6,10 @@ from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.crypto import get_random_string
 
+from best_bank_as import decorators
 from best_bank_as.enums import (
     AccountStatus,
     ApplicationStatus,
-    ApplicationType,
     CustomerRank,
     CustomerStatus,
 )
@@ -184,6 +184,7 @@ def search_customer(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
+@decorators.group_required("customer")
 def new_loan_application(request: HttpRequest) -> HttpResponse:
     """View for creating a new loan application."""
 
@@ -206,7 +207,6 @@ def new_loan_application(request: HttpRequest) -> HttpResponse:
         application = LoanApplication(
             reason=form_data["reason"],
             amount=form_data["amount"],
-            type=ApplicationType.LOAN,
             status=ApplicationStatus.PENDING,
             customer=customer,
         )
@@ -215,25 +215,36 @@ def new_loan_application(request: HttpRequest) -> HttpResponse:
 
     context = {
         "customer": customer,
+        "is_customer": True,
         "loan_applications": customer.loan_applications,
         "form": LoanApplicationForm(customer=customer),
     }
 
     return render(
         request,
-        "best_bank_as/loans/loan_application.html",
+        "best_bank_as/loan_applications/customer_loan_applications_page.html",
         context,
     )
 
 
 @login_required
-def loan_applications_list(request: HttpRequest) -> HttpResponse:
+@decorators.group_required("employee", "supervisor")
+def staff_loan_applications_page(request: HttpRequest) -> HttpResponse:
     """View for listing all loan applications."""
-    ...
+
+    applications = LoanApplication.filter_fmt()
+
+    context = {"loan_applications": applications, "is_customer": False}
+
+    return render(
+        request,
+        "best_bank_as/loan_applications/staff_loan_applications_page.html",
+        context,
+    )
 
 
 @login_required
-# @require_http_methods(["GET", "DELETE"])
+@decorators.group_required("customer")
 def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given loan application."""
 
@@ -255,7 +266,41 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
 
     return render(
         request,
-        "best_bank_as/loans/loan_application_details.html",
+        "best_bank_as/loan_applications/loan_application_details.html",
+        context,
+    )
+
+
+@login_required
+@decorators.group_required("employee", "supervisor")
+def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
+    """Retrieve information for a given loan application, as staff."""
+
+    application = get_object_or_404(LoanApplication, pk=pk)
+    user = request.user
+
+    if request.method == "DELETE":
+        application.reject()
+        return redirect("best_bank_as:approve_loan_applications")
+
+    if request.method == "PUT":
+        print("*" * 200)
+        is_employee = not user.groups.filter(name="supervisor").exists()
+
+        if is_employee:
+            application.employee_approve(user)
+        else:
+            application.supervisor_approve(user)
+        return redirect("approve_loan_applications")
+
+    context = {
+        "loan_application": application,
+        "status_name": application.status_name,
+    }
+
+    return render(
+        request,
+        "best_bank_as/loan_applications/loan_application_details.html",
         context,
     )
 
@@ -303,6 +348,7 @@ def get_accounts_for_user(
     return render(request, "best_bank_as/accounts/account_list.html", context)
 
 
+@decorators.group_required("employee")
 def approve_customers_list(request: HttpRequest) -> HttpResponse:
     """Get all pending new customers."""
     customers = Customer.get_pending()
