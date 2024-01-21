@@ -279,12 +279,14 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
         )
     source_account = form.cleaned_data["source_account"]
     destination_account = form.cleaned_data["destination_account"]
+    registration_number = form.cleaned_data["registration_number"]
     destination_account_instance = Account.objects.get(
         account_number=destination_account
     )
     amount = form.cleaned_data["amount"]
-    Ledger.transfer(source_account, destination_account_instance, amount)
-    return redirect("best_bank_as:index")
+    if int(registration_number) == 1:
+        Ledger.transfer(source_account, destination_account_instance, amount)
+        return redirect("best_bank_as:index")
 
 
 @login_required
@@ -299,6 +301,7 @@ def get_accounts_for_user(
     customer = get_object_or_404(Customer, user=pk)
 
     accounts = customer.get_accounts()
+    print(accounts)
 
     context = {"accounts": accounts}
     return render(request, "best_bank_as/accounts/account_list.html", context)

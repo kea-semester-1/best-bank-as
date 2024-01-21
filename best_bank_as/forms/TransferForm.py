@@ -14,13 +14,14 @@ class TransferForm(forms.Form):
         queryset=Account.objects.none(), label="Source Account"
     )
 
+    registration_number = forms.CharField(label="Destination Registration Number")
     destination_account = forms.IntegerField(label="Destination Account Number")
     amount = forms.DecimalField(decimal_places=2, label="Amount to Transfer")
 
     def __init__(self, user: User, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields["source_account"].queryset = Account.objects.filter(
-            customer=user.customer, account_status=not AccountStatus.PENDING
+            customer=user.customer, account_status=AccountStatus.ACTIVE
         )
 
 

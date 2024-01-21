@@ -58,7 +58,6 @@ class Ledger(base_model.BaseModel):
             transaction_id=new_transaction,
         )
 
-    @classmethod
     @transaction.atomic
     def transfer_external(
         cls,
@@ -88,6 +87,10 @@ class Ledger(base_model.BaseModel):
             registration_number=destination_account,
             status=enums.TransactionStatus.PENDING,
         )
+
+    @classmethod
+    def enqueue_external_transfer() -> None:
+        pass
 
     def set_status(cls, transaction_id: int, status: enums.TransactionStatus) -> None:
         ledger = cls.objects.filter(transaction_id=transaction_id)
