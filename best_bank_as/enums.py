@@ -52,10 +52,12 @@ class AccountType(BaseEnum):
 
     - `SAVINGS` - Account is a savings account.
     - `CHECKING` - Account is a checking account.
+    - `INTERNAL` - Account is a checking account.
     """
 
     SAVINGS = 1
     CHECKING = 2
+    INTERNAL = 3
 
 
 class AccountStatus(BaseEnum):
