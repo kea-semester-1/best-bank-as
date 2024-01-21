@@ -154,4 +154,4 @@ SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ["https://what-lol.dk", "https://www.what-lol.dk"]
+

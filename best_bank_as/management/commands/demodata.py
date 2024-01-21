@@ -1,5 +1,6 @@
 import secrets
 from decimal import Decimal
+from typing import Any
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
@@ -15,26 +16,9 @@ class Command(BaseCommand):
     """Inserting demo data."""
 
     @transaction.atomic
-    def handle(self) -> None:
+    def handle(self, *args: Any, **options: Any) -> None:
         """Inserting demo data."""
         print("Adding demo data...")
-
-        bank = User.objects.create_user(
-            username="bank", email="", password=secrets.token_urlsafe(64)
-        )
-        bank.save()
-        bank_customer = Customer.objects.create(user=bank, phone_number="11223344")
-        bank_customer.save()
-
-        bank_account_number = 1
-        bank_account = Account.objects.create(
-            account_number=bank_account_number, customer=bank_customer
-        )
-        Ledger.objects.create(
-            transaction_id=Transaction.objects.create(),
-            account_number=bank_account,
-            amount=10000000,
-        )
 
         user1 = User.objects.create_user(username="Malthe", email="", password="123")
         user2 = User.objects.create_user(username="Mohammed", email="", password="123")
@@ -67,18 +51,20 @@ class Command(BaseCommand):
         account5.save()
         account6.save()
 
+        bank_account = Account.objects.filter(account_number=1)
+
         Ledger.transfer(
-            source_account=bank_account,
+            source_account=bank_account[0],
             destination_account=account1,
             amount=Decimal(value=5000),
         )
         Ledger.transfer(
-            source_account=bank_account,
+            source_account=bank_account[0],
             destination_account=account3,
             amount=Decimal(value=5000),
         )
         Ledger.transfer(
-            source_account=bank_account,
+            source_account=bank_account[0],
             destination_account=account5,
             amount=Decimal(value=5000),
         )
