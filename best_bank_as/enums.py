@@ -49,19 +49,25 @@ class AccountType(BaseEnum):
 
     - `SAVINGS` - Account is a savings account.
     - `CHECKING` - Account is a checking account.
+    - `LOAN` - Account is a loan account.
+
+    - `INTERNAL` - Account is an internal account,
+    meaning that it belongs to the bank.
     """
 
     SAVINGS = 1
     CHECKING = 2
+    LOAN = 3
+    INTERNAL = 4
 
 
 class AccountStatus(BaseEnum):
     """Account status type.
 
-    - `Active` - Account is active & is approved by staff and supervisor
-    - `Inactive` - Account is inactive due to a deletion
-    - `Pending` - After customer has requested new account
-    - `Rejected` - Rejected by either staff or supervisor
+    - `ACTIVE` - Account is active & is approved by employee and supervisor
+    - `INACTIVE` - Account is inactive due to a deletion
+    - `PENDING` - After customer has requested new account
+    - `REJECTED` - Rejected by either employee or supervisor
     """
 
     ACTIVE = 1

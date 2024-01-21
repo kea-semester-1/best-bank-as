@@ -36,8 +36,8 @@ urlpatterns = [
     # Loan applications
     path(
         "loan-applications",
-        views.new_loan_application,
-        name="new_loan_application",
+        views.loan_application_list,
+        name="loan_application_list",
     ),
     path(
         "loan-applications/details/<int:pk>",

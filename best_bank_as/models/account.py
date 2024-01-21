@@ -16,23 +16,29 @@ if TYPE_CHECKING:
 class Account(base_model.BaseModel):
     """Model for account."""
 
-    account_number = models.IntegerField(
-        unique=True,
-    )
-    customer = models.ForeignKey("best_bank_as.Customer", on_delete=models.CASCADE)
-    type = models.IntegerField(
+    customer = models.ForeignKey(
+        "best_bank_as.Customer", on_delete=models.CASCADE, null=True, blank=True
+    )  # noqa: E501
+    account_type = models.IntegerField(
         choices=enums.AccountType.choices,
-        default=0,
+        default=enums.AccountType.SAVINGS,
     )
-    account_status = models.IntegerField(choices=enums.AccountStatus.choices, default=1)
+    account_status = models.IntegerField(
+        choices=enums.AccountStatus.choices, default=enums.AccountStatus.INACTIVE
+    )  # noqa: E501
+
+    @property
+    def account_number(self) -> str:
+        """Get account number."""
+        return self.pk
 
     def get_balance(self) -> Decimal:
         """
         Retrieve the balance for the account.
         """
-        balance = Ledger.objects.filter(account_number_id=self.pk).aggregate(
-            Sum("amount")
-        )["amount__sum"]
+        balance = Ledger.objects.filter(account=self).aggregate(Sum("amount"))[
+            "amount__sum"
+        ]
         return balance or Decimal(0)
 
     def get_transactions(self) -> list[dict[str, Any]]:
@@ -51,7 +57,7 @@ class Account(base_model.BaseModel):
 
         # Fetch all transaction IDs related to this account.
         related_ledger_entries = (
-            Ledger.objects.filter(account_number_id=self.id)
+            Ledger.objects.filter(account=self)
             .select_related("account_number", "transaction_id")
             .order_by("transaction_id_id", "created_at")
         )
@@ -67,7 +73,7 @@ class Account(base_model.BaseModel):
             for counterpart in counterpart_entries:
                 transaction_data = {
                     "transaction_id": entry.transaction_id_id,
-                    "counterpart_account_number": counterpart.account_number.account_number,  # noqa: E501
+                    "counterpart_account_number": counterpart.account.account_number,  # noqa: E501
                     "amount": entry.amount,
                     "date": entry.created_at,
                 }
@@ -90,17 +96,8 @@ class Account(base_model.BaseModel):
             if has_pending_account:
                 raise ValueError("Customer already has pending account.")
 
-        latest_account_number = cls.objects.all().order_by("-account_number").first()
-
-        if latest_account_number:
-            new_account_number = latest_account_number.account_number + 1
-        else:
-            new_account_number = 1  # If there are no accounts yet
-
         # Create a new account
-        new_account = cls(
-            account_number=new_account_number, customer=customer, account_status=status
-        )
+        new_account = cls(customer=customer, account_status=status)
         new_account.save()
         return new_account
 

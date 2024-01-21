@@ -9,7 +9,6 @@
     {% endif %}
     {% if is_customer %}
 
-
     <button hx-delete="{% url 'best_bank_as:loan_application_details' loan_application.pk %}"
         hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
         hx-confirm="Are you sure you want to delete the loan application?">
@@ -17,7 +16,7 @@
     </button>
     
     {% else %}
-    <p> asd</p>
+
     <button hx-delete="{% url 'best_bank_as:staff_loan_application_details' loan_application.pk %}"
         hx-headers='{"X-CSRFToken":"{{ csrf_token }}"}'
         hx-confirm="Are you sure you want to reject this loan application?">

@@ -2,9 +2,12 @@ from typing import Any
 
 from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
+from django.db.transaction import atomic
 
 from best_bank_as import enums
-from best_bank_as.models.account_type import AccountType
+from best_bank_as.models.account import Account
+from best_bank_as.models.ledger import Ledger
+from best_bank_as.models.transaction import Transaction
 
 
 def create_groups() -> None:
@@ -57,24 +60,40 @@ def create_groups() -> None:
                 print(f"Permission with codename '{perm}' not found.")
 
 
+@atomic
+def create_internal_bank_account() -> None:
+    """Create internal bank account."""
+    account = Account.objects.create(
+        account_type=enums.AccountType.INTERNAL,
+        account_status=enums.AccountStatus.ACTIVE,
+        customer=None,
+    )
+
+    transaction = Transaction.objects.create()
+
+    # Add starting balance
+    Ledger.objects.create(
+        account=account,
+        transaction=transaction,
+        amount=1000000,
+    )
+
+
 class Command(BaseCommand):
     """Command for provisioning."""
 
     def handle(self, **options: Any) -> None:
         """Handle command."""
         print("Provisioning...")
-        if not AccountType.objects.all():
-            AccountType.objects.create(
-                account_type_name=enums.AccountType.choices[0][1]
-            )
-            AccountType.objects.create(
-                account_type_name=enums.AccountType.choices[1][1]
-            )
 
         if not Group.objects.all():
             print("Creating groups...")
             create_groups()
         else:
             print("Groups already created.")
+
+        if not Account.objects.filter(account_type=enums.AccountType.INTERNAL).exists():
+            print("Creating internal bank account...")
+            create_internal_bank_account()
 
         print("Provision completed.")

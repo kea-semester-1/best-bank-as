@@ -11,7 +11,7 @@ class LoanApplication(base_model.BaseModel):
     """Model for customer_application."""
 
     reason = models.CharField(max_length=255)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
 
     status = models.IntegerField(
         choices=enums.ApplicationStatus.choices,
@@ -21,14 +21,14 @@ class LoanApplication(base_model.BaseModel):
         "Customer", on_delete=models.CASCADE, null=True, blank=True
     )
 
-    employee_approved = models.OneToOneField(
+    employee_approved = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name="employee",
     )
-    supervisor_approved = models.OneToOneField(
+    supervisor_approved = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         null=True,
@@ -41,6 +41,11 @@ class LoanApplication(base_model.BaseModel):
         """Get status name."""
         return enums.ApplicationStatus.int_to_enum(self.status)
 
+    @property
+    def approved(self) -> bool:
+        """Check if the loan application is approved."""
+        return self.employee_approved and self.supervisor_approved
+
     def reject(self) -> None:
         """Soft delete the loan application."""
         self.status = enums.ApplicationStatus.REJECTED
@@ -48,12 +53,18 @@ class LoanApplication(base_model.BaseModel):
 
     def employee_approve(self, user: User) -> None:
         """Employee approve the loan application."""
+        if self.status != enums.ApplicationStatus.PENDING:
+            raise ValueError("Cannot approve a non-pending application.")
+
         self.status = enums.ApplicationStatus.EMPLOYEE_APPROVED
         self.employee_approved = user
         self.save()
 
     def supervisor_approve(self, user: User) -> None:
         """Supervisor approve the loan application."""
+        if self.status != enums.ApplicationStatus.EMPLOYEE_APPROVED:
+            raise ValueError("Cannot approve a non-employee approved application.")
+
         self.status = enums.ApplicationStatus.SUPERVISOR_APPROVED
         self.supervisor_approved = user
         self.save()

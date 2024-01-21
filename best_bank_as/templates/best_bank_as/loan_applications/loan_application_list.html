@@ -1,6 +1,17 @@
 <body>
     {% block content %}
 
+    <form action="{% url 'best_bank_as:approve_loan_applications' %}" method="get">
+        <select name="status_filter">
+            <option value="">--Select a Status--</option>
+            <option value="1">Pending</option>
+            <option value="2">Employee Approved</option>
+            <option value="3">Supervisor Approved</option>
+            <option value="4">Rejected</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
     {% if loan_applications %}
 
     {% if is_customer %}
