@@ -96,7 +96,7 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
                 )
 
             response_text = (
-                f"Status: {status_label},"  # Use the label here
+                f"Status: {status_label},"
                 f" Account number: {new_account.account_number}"
             )
             context = {"data": response_text}
