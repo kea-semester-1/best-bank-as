@@ -1,3 +1,6 @@
+
+from typing import Any
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q, QuerySet, Sum
@@ -49,12 +52,28 @@ class Customer(BaseModel):
         return self
 
     def update_rank(self, rank: int) -> None:
+        """Method for updating rank on the customer."""
         self.rank = rank
         self.save()
 
     def set_customer_active_status(self) -> "Customer":
+        """Set customer status.
+        This will act as a solft delete.
+        """
         self.user.is_active = not self.user.is_active
         self.user.save()
+        return self
+
+    def update_customer_fields(self, **kwargs: Any) -> "Customer":
+        """Update customer fields."""
+        for key, value in kwargs.items():
+            if value is not None and value != "":
+                if key == "phone_number":
+                    setattr(self, key, value)
+                else:
+                    setattr(self.user, key, value)
+        self.user.save()
+        self.save()
         return self
 
     @atomic
@@ -84,6 +103,7 @@ class Customer(BaseModel):
             amount=loan_application.amount,
         )
         loan.save()
+
 
     @property
     def can_loan(self) -> bool:

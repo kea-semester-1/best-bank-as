@@ -34,6 +34,7 @@ class CustomerCreationForm(forms.ModelForm):
         model = Customer
         fields = ["phone_number"]
 
+
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields["phone_number"].widget.attrs["placeholder"] = "11223344"
