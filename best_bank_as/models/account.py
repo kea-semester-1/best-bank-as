@@ -94,7 +94,8 @@ class Account(base_model.BaseModel):
             ).exists()
 
             if has_pending_account:
-                raise ValueError("Customer already has pending account.")
+                error = "You already have a pending account. Please wait for approval."
+                raise ValueError(error)
 
         # Create a new account
         new_account = cls(customer=customer, account_status=status)
