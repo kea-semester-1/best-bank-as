@@ -1,8 +1,15 @@
  {% extends "best_bank_as/base.html" %}
+
     <!-- Main section -->
     {% block content %}
 
+        {% if error %}
+            <h1>{{ error }}</h1>
+        {% else %}
+        
         <h1>Access for this page denied.</h1>
-
+        
+        {% endif %}
+            
 
     {% endblock %}

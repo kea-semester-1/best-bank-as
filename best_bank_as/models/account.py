@@ -88,7 +88,8 @@ class Account(base_model.BaseModel):
             ).exists()
 
             if has_pending_account:
-                raise ValueError("Customer already has pending account.")
+                error = "You already have a pending account. Please wait for approval."
+                raise ValueError(error)
 
         latest_account_number = cls.objects.all().order_by("-account_number").first()
 
