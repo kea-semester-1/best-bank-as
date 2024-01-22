@@ -9,6 +9,8 @@ from best_bank_as.models.transaction import Transaction
 from best_bank_as import enums
 from best_bank_as.models.bank import Bank
 import django_rq
+import requests
+from urllib.parse import urlencode
 
 
 class Ledger(base_model.BaseModel):
@@ -105,13 +107,14 @@ class Ledger(base_model.BaseModel):
         amount: Decimal,
     ) -> None:
         django_rq.enqueue(
-            cls.transfer_external,
+            cls.initiate_external_transfer,
             amount=amount,
             source_account=source_account,
             destination_reg_no=registration_number,
             destination_account=destination_account,
         )
 
+    @classmethod
     def set_status(cls, transaction_id: int, status: enums.TransactionStatus) -> None:
         ledger = cls.objects.filter(transaction_id=transaction_id)
 
@@ -119,3 +122,57 @@ class Ledger(base_model.BaseModel):
             raise ValueError("No ledger found")
 
         ledger.update(status=status)
+
+    @classmethod
+    def initiate_external_transfer(
+        cls,
+        source_account: Any,
+        destination_reg_no: Any,
+        destination_account: Any,
+        amount: Decimal,
+    ) -> None:
+        # Construct the form data
+        data = {
+            "source_account": source_account,
+            "destination_account": destination_account,
+            "registration_number": destination_reg_no,
+            "amount": amount,
+        }
+
+        # URL of the external bank's `transaction_list` view
+        external_bank_url = "https://externalbank.com/transaction_list"
+
+        try:
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            response = requests.post(
+                external_bank_url, data=urlencode(data), headers=headers
+            )
+            response.raise_for_status()
+
+            if response.status_code == 200:
+                # Assuming a successful response indicates the external transfer has been initiated
+                # You might want to check the response content for specific confirmation details
+                cls.finalize_external_transfer(
+                    source_account,
+                    destination_reg_no,
+                    destination_account,
+                    amount,
+                )
+        except requests.RequestException as e:
+            print(e)
+
+    @classmethod
+    @transaction.atomic
+    def finalize_external_transfer(
+        cls,
+        transaction_id: int,
+        status: enums.TransactionStatus,
+    ) -> None:
+        """
+        Finalize the external transfer by updating its status.
+        """
+        # Ensure the transaction exists
+        if not Transaction.objects.filter(id=transaction_id).exists():
+            raise ValueError("Transaction not found")
+
+        cls.set_status(transaction_id=transaction_id, status=status)

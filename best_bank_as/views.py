@@ -285,15 +285,29 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     )
     amount = form.cleaned_data["amount"]
 
-    if int(registration_number) == 1:
-        Ledger.enqueue_external_transfer(
-            source_account=source_account,
-            destination_account=destination_account_instance,
-            amount=amount,
-            registration_number=registration_number,
-        )
+    try:
+        if int(registration_number) != 1:
+            destination_account_instance = Account.objects.get(
+                account_number=destination_account
+            )
+            Ledger.enqueue_external_transfer(
+                source_account=source_account,
+                destination_account=destination_account_instance,
+                amount=amount,
+                registration_number=registration_number,
+            )
+            messages.success(request, "External transfer initiated successfully.")
+        else:
+            destination_account_instance = Account.objects.get(
+                account_number=destination_account
+            )
+            Ledger.transfer(source_account, destination_account_instance, amount)
+            messages.success(request, "Internal transfer completed successfully.")
 
-        return redirect("best_bank_as:index")
+    except Exception as e:
+        messages.error(request, f"Transfer failed: {str(e)}")
+
+    return redirect("best_bank_as:index")
 
 
 @login_required
