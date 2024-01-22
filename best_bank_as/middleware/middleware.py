@@ -5,6 +5,8 @@ from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, QueryDict
 from django.shortcuts import render
 
+from best_bank_as import constants
+
 
 class NotFoundMiddleware:
     """Prevents the standard error page when visiting invalid URL."""
@@ -43,20 +45,22 @@ class RequestMethodDictionaryMiddleware:
 class SessionTimeoutMiddleware:
     """Middleware for session timeout."""
 
-    def __init__(self, get_response):  # type : ignore
+    def __init__(self, get_response: HttpResponse):  # type : ignore
         """Init method for session timeout middleware."""
         self.get_response = get_response
 
-    def __call__(self, request):  # type : ignore
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         """Call method for session timeout middleware."""
         if request.user.is_authenticated:
-            current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            current_time = datetime.datetime.now().strftime(constants.DATETIME_FORMAT)
             last_activity = request.session.get("last_activity", None)
             if last_activity:
                 last_activity = datetime.datetime.strptime(
-                    last_activity, "%Y-%m-%d %H:%M:%S"
+                    last_activity, constants.DATETIME_FORMAT
                 )
-                if (datetime.datetime.now() - last_activity).seconds > 300:  # 5 minutes
+                if (
+                    datetime.datetime.now() - last_activity
+                ).seconds > constants.SESSION_TIMEOUT_SECONDS:  # 5 minutes
                     logout(request)
             request.session["last_activity"] = current_time
         response = self.get_response(request)
