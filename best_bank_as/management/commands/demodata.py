@@ -9,33 +9,19 @@ from django.db.transaction import atomic
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.ledger import Ledger
-from best_bank_as.models.transaction import Transaction
+from best_bank_as import enums
 
 
 class Command(BaseCommand):
     """Inserting demo data."""
 
     @atomic
-    def handle(self) -> None:
+    def handle(self, **options: Any) -> None:
         """Inserting demo data."""
         print("Adding demo data...")
 
-        bank = User.objects.create_user(
-            username="bank", email="", password=secrets.token_urlsafe(64)
-        )
-        bank.save()
-        bank_customer = Customer.objects.create(user=bank, phone_number="11223344")
-        bank_customer.save()
-
-        bank_account = Account.objects.create(customer=bank_customer)
-        Ledger.objects.create(
-            transaction=Transaction.objects.create(),
-            account=bank_account,
-            amount=10000000,
-        )
-
         user1 = User.objects.create_user(username="Malthe", email="", password="123")
-        user2 = User.objects.create_user(username="Mohammed", email="", password="123")
+        user2 = User.objects.create_user(username="Mo", email="", password="123")
         user3 = User.objects.create_user(username="Martin", email="", password="123")
 
         user1.save()
@@ -50,22 +36,34 @@ class Command(BaseCommand):
         customer2.save()
         customer3.save()
 
-        account1 = Account.objects.create(customer=customer1)
-        account2 = Account.objects.create(customer=customer1)
+        account1 = Account.objects.create(
+            customer=customer1, account_status=enums.AccountStatus.ACTIVE
+        )
+        account2 = Account.objects.create(
+            customer=customer1, account_status=enums.AccountStatus.ACTIVE
+        )
         account1.save()
         account2.save()
 
-        account3 = Account.objects.create(customer=customer2)
-        account4 = Account.objects.create(customer=customer2)
+        account3 = Account.objects.create(
+            customer=customer2, account_status=enums.AccountStatus.ACTIVE
+        )
+        account4 = Account.objects.create(
+            customer=customer2, account_status=enums.AccountStatus.ACTIVE
+        )
         account3.save()
         account4.save()
 
-        account5 = Account.objects.create(customer=customer3)
-        account6 = Account.objects.create(ustomer=customer3)
+        account5 = Account.objects.create(
+            customer=customer3, account_status=enums.AccountStatus.ACTIVE
+        )
+        account6 = Account.objects.create(
+            customer=customer3, account_status=enums.AccountStatus.ACTIVE
+        )
         account5.save()
         account6.save()
 
-        bank_account = Account.objects.filter(account_number=1)
+        bank_account = Account.objects.filter(pk=1)
 
         Ledger.transfer(
             source_account=bank_account[0],

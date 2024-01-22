@@ -31,11 +31,4 @@ class Migration(migrations.Migration):
                 "abstract": False,
             },
         ),
-        migrations.AlterField(
-            model_name="account",
-            name="type",
-            field=models.IntegerField(
-                choices=[(1, "Savings"), (2, "Checking"), (3, "Internal")], default=0
-            ),
-        ),
     ]

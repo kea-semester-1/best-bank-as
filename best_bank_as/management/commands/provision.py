@@ -123,16 +123,10 @@ class Command(BaseCommand):
         bank_customer = Customer.objects.create(user=bank, phone_number="11223344")
         bank_customer.save()
 
-        bank_account_number = 1
-        bank_account = Account.objects.create(
-            account_number=bank_account_number, customer=bank_customer
-        )
-        Ledger.objects.create(
-            transaction_id=Transaction.objects.create(),
-            account_number=bank_account,
-            registration_number_id=1,
-            amount=10000000,
-        )
+        if not Account.objects.filter(account_type=enums.AccountType.INTERNAL).exists():
+            print("Creating internal bank account...")
+            create_internal_bank_account()
+
         if not Account.objects.all():
             Account.objects.create()
 
@@ -141,9 +135,5 @@ class Command(BaseCommand):
             create_groups()
         else:
             print("Groups already created.")
-
-        if not Account.objects.filter(account_type=enums.AccountType.INTERNAL).exists():
-            print("Creating internal bank account...")
-            create_internal_bank_account()
 
         print("Provision completed.")

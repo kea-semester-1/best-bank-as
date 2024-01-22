@@ -77,7 +77,7 @@ class Ledger(base_model.BaseModel):
         )
 
     @classmethod
-    @transaction.atomic
+    @atomic
     def transfer_external(
         cls,
         source_account: Any,
@@ -97,7 +97,7 @@ class Ledger(base_model.BaseModel):
             raise ValueError("Amount cannot be less than balance")
 
         try:
-            bank = Bank.objects.get(pk=destination_reg_no)
+            bank = Bank.objects.get(registration_number=destination_reg_no)
         except Bank.DoesNotExist:
             raise ValueError("Bank with the given registration number does not exist")
 
@@ -176,7 +176,7 @@ class Ledger(base_model.BaseModel):
             print(e)
 
     @classmethod
-    @transaction.atomic
+    @atomic
     def finalize_external_transfer(
         cls,
         transaction_id: int,

@@ -351,13 +351,11 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     source_account = form.cleaned_data["source_account"]
     destination_account = form.cleaned_data["destination_account"]
     registration_number = form.cleaned_data["registration_number"]
-    destination_account_instance = Account.objects.get(
-        account_number=destination_account
-    )
+    destination_account_instance = Account.objects.get(pk=destination_account)
     amount = form.cleaned_data["amount"]
 
     try:
-        if int(registration_number) != 1:
+        if registration_number != "6666":
             destination_account_instance = Account.objects.get(
                 account_number=destination_account
             )
@@ -369,9 +367,7 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
             )
             messages.success(request, "External transfer initiated successfully.")
         else:
-            destination_account_instance = Account.objects.get(
-                account_number=destination_account
-            )
+            destination_account_instance = Account.objects.get(pk=destination_account)
             Ledger.transfer(
                 source_account=Account.objects.get(pk=source_account),
                 destination_account=destination_account_instance,
@@ -381,7 +377,7 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
 
     except Exception as e:
         messages.error(request, f"Transfer failed: {str(e)}")
-        
+
     return redirect("best_bank_as:index")
 
 
