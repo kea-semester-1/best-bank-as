@@ -9,29 +9,26 @@ class BaseEnum(IntegerChoices):
         """Convert an integer to a string representation of an enum."""
         return cls.choices[value - 1][1]
 
+    @classmethod
+    def name_value_pairs(cls) -> list[tuple[str, int]]:
+        """Get name value pairs."""
+        return [(name, value) for name, value in cls.choices]
+
 
 class ApplicationStatus(BaseEnum):
     """
     Application status enum.
 
-    - `PENDING` - Application is pending.
-    - `APPROVED` - Application is approved.
-    - `REJECTED` - Application is rejected.
+    - `PENDING` - Application is pending
+    - `EMPLOYEE_APPROVED` - Application is approved by employee
+    - `SUPERVISOR_APPROVED` - Application is approved by supervisor
+    - `REJECTED` - Application is rejected
     """
 
     PENDING = 1
-    APPROVED = 2
-    REJECTED = 3
-
-
-class ApplicationType(BaseEnum):
-    """
-    Application type enum.
-
-    - `LOAN` - Application is for a loan.
-    """
-
-    LOAN = 1
+    EMPLOYEE_APPROVED = 2
+    SUPERVISOR_APPROVED = 3
+    REJECTED = 4
 
 
 class CustomerRank(BaseEnum):
@@ -52,21 +49,24 @@ class AccountType(BaseEnum):
 
     - `SAVINGS` - Account is a savings account.
     - `CHECKING` - Account is a checking account.
-    - `INTERNAL` - Account is an internal account.
+    - `LOAN` - Account is a loan account.
+    - `INTERNAL` - Account is an internal account,
+    meaning that it belongs to the bank.
     """
 
     SAVINGS = 1
     CHECKING = 2
-    INTERNAL = 3
+    LOAN = 3
+    INTERNAL = 4
 
 
 class AccountStatus(BaseEnum):
     """Account status type.
 
-    - `Active` - Account is active & is approved by staff and supervisor
-    - `Inactive` - Account is inactive due to a deletion
-    - `Pending` - After customer has requested new account
-    - `Rejected` - Rejected by either staff or supervisor
+    - `ACTIVE` - Account is active & is approved by employee and supervisor
+    - `INACTIVE` - Account is inactive due to a deletion
+    - `PENDING` - After customer has requested new account
+    - `REJECTED` - Rejected by either employee or supervisor
     """
 
     ACTIVE = 1
@@ -99,3 +99,16 @@ class TransactionStatus(BaseEnum):
     PENDING = 1
     PROCESSED = 2
     REJECTED = 3
+
+
+class LoanStatus(BaseEnum):
+    """Loan status enum.
+
+    - `IN_PROGRESS` - Loan is in progress
+    - `PAID` - Loan is paid
+    - `ABORTED` - Loan is aborted
+    """
+
+    IN_PROGRESS = 1
+    PAID = 2
+    ABORTED = 3

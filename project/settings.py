@@ -68,6 +68,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "best_bank_as.middleware.middleware.NotFoundMiddleware",
     "best_bank_as.middleware.middleware.RequestMethodDictionaryMiddleware",
+    "best_bank_as.middleware.middleware.SessionTimeoutMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"

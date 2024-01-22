@@ -66,10 +66,10 @@
                 <button>Create account</button>
             </form>
 
-            <details>
-                <summary><h2>Update user</h2></summary>
+            <div>
+                <h2>Update user</h2>
                 {% include "best_bank_as/customers/customer_update.html" %}
-            </details>
+            </div>
         {% endfor %}
     {% else %}
         <p>No customers found.</p>

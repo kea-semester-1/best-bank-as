@@ -2,6 +2,7 @@
     <form
             hx-put="{% url "best_bank_as:customer" customer.pk %}"
             hx-headers='{"X-CSRFToken":"{{ csrf_token }}", "Content-Type": "application/json"}'
+            hx-swap="outerHTML"
     >
 
         <input hidden name="customer_update" value="customer_update" type="text">
@@ -13,3 +14,5 @@
         <button type="submit">Update</button>
     </form>
 </article>
+
+{% include "best_bank_as/messages/messages.html" %}

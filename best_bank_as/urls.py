@@ -35,19 +35,24 @@ urlpatterns = [
     path("customers/<int:pk>/", views.customer_details, name="customer"),
     # Loan applications
     path(
-        "loan-applications/",
-        views.new_loan_application,
-        name="new_loan_application",
-    ),
-    path(
-        "loan-applications/list",
-        views.loan_applications_list,
-        name="loan_applications_list",
+        "loan-applications",
+        views.loan_application_list,
+        name="loan_application_list",
     ),
     path(
         "loan-applications/details/<int:pk>",
         views.loan_application_details,
         name="loan_application_details",
+    ),
+    path(
+        "staff/loan-applications/details/<int:pk>",
+        views.staff_loan_application_details,
+        name="staff_loan_application_details",
+    ),
+    path(
+        "staff/loan-applications/",
+        views.staff_loan_applications_page,
+        name="approve_loan_applications",
     ),
     # Transfers
     path("transfer/", views.transaction_list, name="transfer_money"),

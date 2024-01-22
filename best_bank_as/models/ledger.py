@@ -1,7 +1,9 @@
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING
 
-from django.db import models, transaction
+from django.db import models
+from django.db.transaction import atomic
+from typing import Any
 
 from best_bank_as.enums import AccountStatus
 from best_bank_as.models.core import base_model
@@ -12,25 +14,37 @@ import django_rq
 import requests
 from urllib.parse import urlencode
 
+if TYPE_CHECKING:
+    from best_bank_as.models.account import Account
+
 
 class Ledger(base_model.BaseModel):
     """Model for ledger."""
 
-    transaction_id = models.ForeignKey(Transaction, on_delete=models.CASCADE)
     registration_number = models.ForeignKey(
         "best_bank_as.Bank", on_delete=models.CASCADE, default=1
     )
-    account_number = models.ForeignKey("best_bank_as.Account", on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.IntegerField(
         choices=enums.TransactionStatus.choices,
         default=0,
     )
+    account = models.ForeignKey(
+        "Account",
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    transaction = models.ForeignKey(
+        "Transaction",
+        on_delete=models.CASCADE,
+        null=True,
+    )
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
 
     @classmethod
-    @transaction.atomic
+    @atomic
     def transfer(
-        cls, source_account: Any, destination_account: Any, amount: Decimal
+        cls, source_account: "Account", destination_account: "Account", amount: Decimal
     ) -> None:
         if amount <= 0:
             raise ValueError("Amount must be a positive number.")
@@ -51,15 +65,15 @@ class Ledger(base_model.BaseModel):
         # Source account
         cls.objects.create(
             amount=-amount,
-            account_number=source_account,
-            transaction_id=new_transaction,
+            account=source_account,
+            transaction=new_transaction,
         )
 
         # Destination account
         cls.objects.create(
             amount=amount,
-            account_number=destination_account,
-            transaction_id=new_transaction,
+            account=destination_account,
+            transaction=new_transaction,
         )
 
     @classmethod

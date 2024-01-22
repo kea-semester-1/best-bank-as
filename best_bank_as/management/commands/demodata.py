@@ -4,7 +4,7 @@ from typing import Any
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
-from django.db import transaction
+from django.db.transaction import atomic
 
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
@@ -15,10 +15,24 @@ from best_bank_as.models.transaction import Transaction
 class Command(BaseCommand):
     """Inserting demo data."""
 
-    @transaction.atomic
-    def handle(self, *args: Any, **options: Any) -> None:
+    @atomic
+    def handle(self) -> None:
         """Inserting demo data."""
         print("Adding demo data...")
+
+        bank = User.objects.create_user(
+            username="bank", email="", password=secrets.token_urlsafe(64)
+        )
+        bank.save()
+        bank_customer = Customer.objects.create(user=bank, phone_number="11223344")
+        bank_customer.save()
+
+        bank_account = Account.objects.create(customer=bank_customer)
+        Ledger.objects.create(
+            transaction=Transaction.objects.create(),
+            account=bank_account,
+            amount=10000000,
+        )
 
         user1 = User.objects.create_user(username="Malthe", email="", password="123")
         user2 = User.objects.create_user(username="Mohammed", email="", password="123")
@@ -36,18 +50,18 @@ class Command(BaseCommand):
         customer2.save()
         customer3.save()
 
-        account1 = Account.objects.create(account_number=2, customer=customer1)
-        account2 = Account.objects.create(account_number=3, customer=customer1)
+        account1 = Account.objects.create(customer=customer1)
+        account2 = Account.objects.create(customer=customer1)
         account1.save()
         account2.save()
 
-        account3 = Account.objects.create(account_number=4, customer=customer2)
-        account4 = Account.objects.create(account_number=5, customer=customer2)
+        account3 = Account.objects.create(customer=customer2)
+        account4 = Account.objects.create(customer=customer2)
         account3.save()
         account4.save()
 
-        account5 = Account.objects.create(account_number=6, customer=customer3)
-        account6 = Account.objects.create(account_number=7, customer=customer3)
+        account5 = Account.objects.create(customer=customer3)
+        account6 = Account.objects.create(ustomer=customer3)
         account5.save()
         account6.save()
 
