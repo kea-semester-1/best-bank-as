@@ -41,6 +41,8 @@ class RequestMethodDictionaryMiddleware:
 
 
 class SessionTimeoutMiddleware:
+    """Middleware for session timeout."""
+
     def __init__(self, get_response):  # type : ignore
         """Init method for session timeout middleware."""
         self.get_response = get_response
