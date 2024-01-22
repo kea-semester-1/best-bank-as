@@ -1,4 +1,5 @@
 from typing import Any
+
 from django import forms
 from django.contrib.auth.models import User
 
@@ -15,8 +16,8 @@ class UserCreationForm(forms.ModelForm):
         model = User
         fields = ["username", "first_name", "last_name", "email", "password"]
 
-    def __init__(self, *args, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs: Any)
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
         self.fields["username"].widget.attrs["placeholder"] = "BestCustomer34"
         self.fields["first_name"].widget.attrs["placeholder"] = "First Name"
         self.fields["last_name"].widget.attrs["placeholder"] = "Last Name"
@@ -33,8 +34,8 @@ class CustomerCreationForm(forms.ModelForm):
         model = Customer
         fields = ["phone_number"]
 
-    def __init__(self, *args, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs: Any)
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
         self.fields["phone_number"].widget.attrs["placeholder"] = "11223344"
 
 
@@ -52,9 +53,9 @@ class UserCreationByEmployeeForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         exclude = ("password",)
 
-    def __init__(self, *args, **kwargs: Any) -> None:
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
         """Init method."""
-        super().__init__(*args, **kwargs: Any)
+        super().__init__(*args, **kwargs)
         # Since 'password' field is excluded, we remove it from the fields
         if "password" in self.fields:
             self.fields.pop("password")
@@ -66,8 +67,8 @@ class UserUpdateForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         exclude = ("password",)
 
-    def __init__(self, *args, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs: Any)
+    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.required = False
 
@@ -81,6 +82,6 @@ class CustomerUpdateForm(CustomerCreationForm):
     class Meta(CustomerCreationForm.Meta):
         pass
 
-    def __init__(self, *args, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs: Any)
+    def __init__(self, *args, **kwargs: Any) -> None:  # type: ignore
+        super().__init__(*args, **kwargs)
         self.fields["phone_number"].required = False
