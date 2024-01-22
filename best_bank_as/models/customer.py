@@ -64,7 +64,9 @@ class Customer(BaseModel):
             raise ValueError("Customer cannot create this loan.")
 
         loan_account = Account.objects.create(
-            customer=self, account_type=enums.AccountType.LOAN
+            customer=self,
+            account_type=enums.AccountType.LOAN,
+            account_status=enums.AccountStatus.ACTIVE,
         )
         loan = Loan.objects.create(
             customer=self,
