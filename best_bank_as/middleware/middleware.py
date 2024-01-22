@@ -1,9 +1,11 @@
-import datetime
 from collections.abc import Callable
+from datetime import datetime
 
 from django.contrib.auth import logout
 from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, QueryDict
 from django.shortcuts import render
+
+from best_bank_as import constants
 
 
 class NotFoundMiddleware:
@@ -43,21 +45,32 @@ class RequestMethodDictionaryMiddleware:
 class SessionTimeoutMiddleware:
     """Middleware for session timeout."""
 
-    def __init__(self, get_response):  # type : ignore
+    def __init__(self, get_response: HttpResponse):  # type : ignore
         """Init method for session timeout middleware."""
         self.get_response = get_response
 
-    def __call__(self, request):  # type : ignore
+    def __call__(self, request: HttpRequest) -> HttpResponse:
         """Call method for session timeout middleware."""
-        if request.user.is_authenticated:
-            current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            last_activity = request.session.get("last_activity", None)
-            if last_activity:
-                last_activity = datetime.datetime.strptime(
-                    last_activity, "%Y-%m-%d %H:%M:%S"
-                )
-                if (datetime.datetime.now() - last_activity).seconds > 300:  # 5 minutes
-                    logout(request)
-            request.session["last_activity"] = current_time
+
         response = self.get_response(request)
+        if not request.user.is_authenticated:
+            return response
+
+        current_time = datetime.now()
+        last_activity = request.session.get("last_activity", None)
+
+        request.session["last_activity"] = current_time.strftime(
+            constants.DATETIME_FORMAT
+        )
+
+        if not last_activity:
+            return response
+
+        dt = current_time - datetime.strptime(last_activity, constants.DATETIME_FORMAT)
+        session_expired = dt.seconds > constants.SESSION_TIMEOUT_SECONDS
+
+        if session_expired:
+            print("********** SESSION EXPIRED **********")
+            logout(request)
+
         return response

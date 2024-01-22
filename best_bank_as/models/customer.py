@@ -1,4 +1,3 @@
-
 from typing import Any
 
 from django.contrib.auth.models import User
@@ -103,7 +102,6 @@ class Customer(BaseModel):
             amount=loan_application.amount,
         )
         loan.save()
-
 
     @property
     def can_loan(self) -> bool:

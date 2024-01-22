@@ -72,7 +72,6 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
             request_status = request.POST.get("request_status")
-            request_status = AccountStatus(request_status)
             status = (
                 AccountStatus.ACTIVE
                 if request_status == AccountStatus.ACTIVE
@@ -87,7 +86,7 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
 
             try:
                 new_account = Account.request_new_account(
-                    customer=customer, status=status
+                    customer=customer, status=status  # type: ignore
                 )
                 status_label = new_account.get_account_status_display()
             except Exception as e:
@@ -349,13 +348,14 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
             "best_bank_as/handle_funds/transfer-money.html",
             {"form": form},
         )
-    source_account = form.cleaned_data["source_account"]
-    destination_account = form.cleaned_data["destination_account"]
-    destination_account_instance = Account.objects.get(
-        account_number=destination_account
+
+    Ledger.transfer(
+        source_account=Account.objects.get(pk=form.cleaned_data["amount"]),
+        destination_account=Account.objects.get(
+            pk=form.cleaned_data["destination_account"]
+        ),
+        amount=form.cleaned_data["amount"],
     )
-    amount = form.cleaned_data["amount"]
-    Ledger.transfer(source_account, destination_account_instance, amount)
     return redirect("best_bank_as:index")
 
 
