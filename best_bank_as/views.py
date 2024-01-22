@@ -65,7 +65,7 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
         context = {
             "accounts": accounts,
             "status_list": status_list,
-        }  # Make sure 'status_list' is defined somewhere
+        }
         return render(request, "best_bank_as/accounts/account_list.html", context)
 
     if request.method == "POST":
@@ -73,8 +73,8 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
         if form.is_valid():
             request_status = request.POST.get("request_status")
             request_status = AccountStatus(request_status)
-            status: AccountStatus = (
-                AccountStatus.ACTIVE  # type: ignore
+            status = (
+                AccountStatus.ACTIVE
                 if request_status == AccountStatus.ACTIVE
                 else AccountStatus.PENDING
             )
@@ -85,7 +85,10 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
             else:
                 customer = get_object_or_404(Customer, pk=pk)
 
-            new_account = Account.request_new_account(customer=customer, status=status)
+            new_account = Account.request_new_account(
+                customer=customer,
+                status=status,  # type: ignore
+            )
 
             response_text = (
                 f"Status: {new_account.account_status},"
@@ -187,7 +190,9 @@ def loan_application_list(request: HttpRequest) -> HttpResponse:
 
     customer = get_object_or_404(Customer, user=request.user)
 
-    status_filter = request.GET.get("state_filter")
+    status_filter = request.GET.get("status_filter")
+
+    print(status_filter)
 
     if request.method == "POST":
         if not customer.can_loan:
@@ -237,12 +242,12 @@ def staff_loan_applications_page(request: HttpRequest) -> HttpResponse:
 
     status_filter = request.GET.get("status_filter")
 
-    if status_filter:
-        applications = LoanApplication.filter_fmt(status=status_filter)
-    else:
-        applications = LoanApplication.filter_fmt()
-
-    context = {"loan_applications": applications, "is_customer": False}
+    context = {
+        "loan_applications": LoanApplication.filter_fmt(status=status_filter)
+        if status_filter
+        else LoanApplication.filter_fmt(),
+        "is_customer": False,
+    }
 
     return render(
         request,

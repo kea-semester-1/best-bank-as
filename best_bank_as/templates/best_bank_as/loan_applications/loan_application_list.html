@@ -1,7 +1,18 @@
 <body>
     {% block content %}
 
+    {% if is_customer %}
+
+    <h1>Your loan applications</h1>
+    <form action="{% url 'best_bank_as:loan_application_list' %}" method="get">
+
+    {% else %}
+
     <form action="{% url 'best_bank_as:approve_loan_applications' %}" method="get">
+    <h1>Loan applications</h1>
+        
+    {% endif %}
+
         <select name="status_filter">
             <option value="">--Select a Status--</option>
             <option value="1">Pending</option>
@@ -11,14 +22,6 @@
         </select>
         <button type="submit">Filter</button>
     </form>
-
-    {% if loan_applications %}
-
-    {% if is_customer %}
-    <h1>Your loan applications</h1>
-    {% else %}
-    <h1>Loan applications</h1>
-    {% endif %}
 
     {% for application, status in loan_applications %}
     {% if is_customer %}
@@ -31,7 +34,6 @@
         <p>Reason: {{ application.reason }}</p>
     </a>
     {% endfor %}
-    {% endif %}
 
     {% endblock %}
 </body>

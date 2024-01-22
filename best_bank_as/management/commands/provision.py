@@ -44,6 +44,8 @@ def create_groups() -> None:
 
     supervisor_permissions = employee_permissions + ["add_loan", "change_loan"]
 
+    customer_permissions.append("delete_loanapplication")
+
     permission_mapping = {
         "customer": customer_permissions,
         "employee": employee_permissions,
