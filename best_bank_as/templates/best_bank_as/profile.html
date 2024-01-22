@@ -14,7 +14,10 @@
            <form
                    method="post"
                    action="{% url 'best_bank_as:get_accounts_list' %}"
-                   hx-target="#target">
+                   hx-swap="outerHTML"
+                   hx-target="#target"
+                   >
+                
 
                 {% csrf_token %}
                 {{ form.as_p }}

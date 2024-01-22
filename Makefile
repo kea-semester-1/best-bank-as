@@ -11,19 +11,28 @@ run: ## Run the application
 
 migration: ## Migrate to latest database version
 	@echo "Upgrading database..."
-	docker container exec $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py migrate
+	docker container exec $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py migrate
+
+migration-revert: ## Revert to previous database version
+	@echo "Downgrading database..."
+	docker container exec $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py migrate best_bank_as zero
 
 migration-generate: ## Generate a new migration file
 	@echo "Generating migration file..."
-	docker container exec $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py makemigrations
+	docker container exec $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py makemigrations
+
+migration-generate-empty: ## Generate a new empty migration file
+	@echo "Generating empty migration file..."
+	docker container exec $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py makemigrations --empty best_bank_as
+
 
 shell: ## Open a shell in the container
 	@echo "Opening shell..."
-	docker container exec -it $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python3 manage.py shell
+	docker container exec -it $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python3 manage.py shell
 	
 superuser: ## Create superuser
 	@echo "Creating superuser..."
-	docker container exec -it $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py createsuperuser
+	docker container exec -it $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py createsuperuser
 
 reboot: # Remove container, images and volumes
 	@echo "Removing containers"
@@ -35,8 +44,8 @@ reboot: # Remove container, images and volumes
 
 provision: ## Create provisions
 	@echo "Creating provision..."
-	docker container exec -it $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py provision
+	docker container exec -it $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py provision
 
 demodata: ## Create demodata
 	@echo "Creating demodata..."
-	docker container exec -it $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py demodata
+	docker container exec -it $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py demodata

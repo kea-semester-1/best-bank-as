@@ -34,7 +34,8 @@ class CustomerCreationForm(forms.ModelForm):
         model = Customer
         fields = ["phone_number"]
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields["phone_number"].widget.attrs["placeholder"] = "11223344"
 
@@ -53,7 +54,7 @@ class UserCreationByEmployeeForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         exclude = ("password",)
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """Init method."""
         super().__init__(*args, **kwargs)
         # Since 'password' field is excluded, we remove it from the fields
@@ -67,7 +68,7 @@ class UserUpdateForm(UserCreationForm):
     class Meta(UserCreationForm.Meta):
         exclude = ("password",)
 
-    def __init__(self, *args, **kwargs) -> None:  # type: ignore
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         for field in self.fields.values():
             field.required = False
@@ -82,6 +83,6 @@ class CustomerUpdateForm(CustomerCreationForm):
     class Meta(CustomerCreationForm.Meta):
         pass
 
-    def __init__(self, *args, **kwargs: Any) -> None:  # type: ignore
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.fields["phone_number"].required = False
