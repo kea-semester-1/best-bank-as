@@ -138,3 +138,6 @@ warn_return_any = false
 namespace_packages = true
 # plugins = ["sqlalchemy.ext.mypy.plugin", "pydantic.mypy"]
 exclude = ["migrations/"]
+
+[tool.isort]
+profile = "black"

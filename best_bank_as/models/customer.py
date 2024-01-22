@@ -1,15 +1,17 @@
 from django.contrib.auth.models import User
 from django.db import models
-from django.db.models import Prefetch, Q, QuerySet, Sum
+from django.db.models import Q, QuerySet, Sum
+from django.db.transaction import atomic
 
 from best_bank_as import enums
 from best_bank_as.models.account import Account
-from best_bank_as.models.core import base_model
-from best_bank_as.models.customer_application import CustomerApplication
+from best_bank_as.models.core.base_model import BaseModel
 from best_bank_as.models.ledger import Ledger
+from best_bank_as.models.loan import Loan
+from best_bank_as.models.loan_application import LoanApplication
 
 
-class Customer(base_model.BaseModel):
+class Customer(BaseModel):
     """Model for customer."""
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -17,12 +19,12 @@ class Customer(base_model.BaseModel):
     rank = models.IntegerField(
         choices=enums.CustomerRank.choices,
         default=2,
-        editable=False,  # Should be programmatically set
+        editable=False,
     )
     status = models.IntegerField(
         choices=enums.CustomerStatus.choices,
         default=1,
-        editable=True,  # Should be programmatically set
+        editable=True,
     )
 
     def get_accounts(self) -> QuerySet[Account]:
@@ -31,9 +33,9 @@ class Customer(base_model.BaseModel):
 
         for account in accounts:
             balance = (
-                Ledger.objects.filter(account_number_id=account.pk).aggregate(
-                    Sum("amount")
-                )["amount__sum"]
+                Ledger.objects.filter(account=account).aggregate(Sum("amount"))[
+                    "amount__sum"
+                ]
                 or 0
             )
             account.balance = balance
@@ -55,44 +57,64 @@ class Customer(base_model.BaseModel):
         self.user.save()
         return self
 
+    @atomic
+    def create_loan(self, loan_application: LoanApplication) -> None:
+        """Create a loan for the customer."""
+        if not self.can_loan or not loan_application.approved:
+            raise ValueError("Customer cannot create this loan.")
+
+        loan_account = Account.objects.create(
+            customer=self,
+            account_type=enums.AccountType.LOAN,
+            account_status=enums.AccountStatus.ACTIVE,
+        )
+        loan = Loan.objects.create(
+            customer=self,
+            loan_application=loan_application,
+            loan_account=loan_account,
+        )
+
+        internal_account = Account.objects.get(
+            account_type=enums.AccountType.INTERNAL, customer=None
+        )
+
+        Ledger.transfer(
+            source_account=internal_account,
+            destination_account=loan_account,
+            amount=loan_application.amount,
+        )
+        loan.save()
+
     @property
     def can_loan(self) -> bool:
         """Check if customer can loan."""
         return self.rank >= enums.CustomerRank.BLUE
 
     @property
-    def loan_applications(self) -> list[tuple[CustomerApplication, str]]:
+    def loan_applications(self) -> list[tuple[LoanApplication, str]]:
         """Get all loan applications for the customer."""
-        loan_applications = CustomerApplication.objects.filter(
-            customer_id=self.pk, type=enums.ApplicationType.LOAN
-        )
-        statuses = [
-            enums.ApplicationStatus.int_to_enum(application.status)
-            for application in loan_applications
-        ]
-        return list(zip(loan_applications, statuses, strict=True))
+        return LoanApplication.filter_fmt(customer_id=self.pk)
 
     @classmethod
     def search(cls, query: str) -> QuerySet["Customer"]:
         """Search for customers based on phone number, username, or account number."""
         return (
             cls.objects.filter(
-                Q(phone_number__icontains=query)
-                | Q(user__username__icontains=query)
-                | Q(account__account_number__icontains=query)
+                Q(phone_number__icontains=query) | Q(user__username__icontains=query)
             )
             .distinct()
             .select_related("user")
-            .prefetch_related(Prefetch("account_set"))
+            # .prefetch_related(Prefetch("account_set"))
         )
 
     @classmethod
     def get_pending(cls) -> QuerySet["Customer"]:
         """Get all pending customers."""
         return (
-            cls.objects.filter(status=enums.CustomerStatus.PENDING)
-            .select_related("user")
-            .prefetch_related(Prefetch("account_set"))
+            cls.objects.filter(status=enums.CustomerStatus.PENDING).select_related(
+                "user"
+            )
+            # .prefetch_related(Prefetch("account_set"))
         )
 
     def __str__(self) -> str:

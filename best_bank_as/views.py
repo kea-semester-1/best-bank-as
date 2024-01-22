@@ -1,15 +1,15 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db.models import Prefetch, Q
+from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.crypto import get_random_string
 
+from best_bank_as import decorators
 from best_bank_as.enums import (
     AccountStatus,
     ApplicationStatus,
-    ApplicationType,
     CustomerRank,
     CustomerStatus,
 )
@@ -25,11 +25,11 @@ from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
-from best_bank_as.models.customer_application import CustomerApplication
 from best_bank_as.models.ledger import Ledger
+from best_bank_as.models.loan_application import LoanApplication
 
-status_list = [(status.name, status.value) for status in AccountStatus]
-rank_list = [(rank.name, rank.value) for rank in CustomerRank]
+status_list = AccountStatus.name_value_pairs()
+rank_list = CustomerRank.name_value_pairs()
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -65,16 +65,17 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
         context = {
             "accounts": accounts,
             "status_list": status_list,
-        }  # Make sure 'status_list' is defined somewhere
+        }
         return render(request, "best_bank_as/accounts/account_list.html", context)
 
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
-            get_account_status = request.POST.get("account_status")
-            set_status = (
+            request_status = request.POST.get("request_status")
+            request_status = AccountStatus(request_status)
+            status = (
                 AccountStatus.ACTIVE
-                if get_account_status == AccountStatus.ACTIVE.name
+                if request_status == AccountStatus.ACTIVE
                 else AccountStatus.PENDING
             )
             pk = request.POST.get("customer_pk")
@@ -86,7 +87,7 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
 
             try:
                 new_account = Account.request_new_account(
-                    customer=customer, status=set_status
+                    customer=customer, status=status
                 )
                 status_label = new_account.get_account_status_display()
             except Exception as e:
@@ -161,23 +162,16 @@ def staff_page(request: HttpRequest, username: str) -> HttpResponse:
 def search_customer(request: HttpRequest) -> HttpResponse:
     """View for searching customers."""
     query = request.GET.get("query", "")
-
     if not request.user.is_staff:
         return HttpResponseForbidden()
 
     customers = (
         Customer.objects.filter(
-            Q(phone_number__icontains=query)
-            | Q(user__username__icontains=query)
-            | Q(account__account_number__icontains=query)
+            Q(phone_number__icontains=query) | Q(user__username__icontains=query)
         )
         .distinct()
         .select_related("user")  # join
-        .prefetch_related(
-            Prefetch(
-                "account_set",
-            )
-        )
+        # .prefetch_related(Prefetch("account_set"))
     )
 
     context = {
@@ -188,14 +182,23 @@ def search_customer(request: HttpRequest) -> HttpResponse:
         "updateForm": UserUpdateForm,
         "updateCustomerForm": CustomerUpdateForm,
     }
-    return render(request, "best_bank_as/customers/customers_search.html", context)
+    return render(
+        request,
+        "best_bank_as/customers/customers_search.html",
+        context,
+    )
 
 
 @login_required
-def new_loan_application(request: HttpRequest) -> HttpResponse:
+@decorators.group_required("customer")
+def loan_application_list(request: HttpRequest) -> HttpResponse:
     """View for creating a new loan application."""
 
     customer = get_object_or_404(Customer, user=request.user)
+
+    status_filter = request.GET.get("status_filter")
+
+    print(status_filter)
 
     if request.method == "POST":
         if not customer.can_loan:
@@ -211,50 +214,112 @@ def new_loan_application(request: HttpRequest) -> HttpResponse:
                 "best_bank_as/error_pages/error_page.html",
             )
         form_data = form.cleaned_data
-        application = CustomerApplication(
+        application = LoanApplication(
             reason=form_data["reason"],
             amount=form_data["amount"],
-            type=ApplicationType.LOAN,
             status=ApplicationStatus.PENDING,
             customer=customer,
         )
         application.save()
-        return redirect("best_bank_as:new_loan_application")
+        return redirect("best_bank_as:loan_application_list")
 
     context = {
         "customer": customer,
-        "loan_applications": customer.loan_applications,
+        "is_customer": True,
+        "loan_applications": LoanApplication.filter_fmt(
+            customer=customer, status=status_filter
+        )
+        if status_filter
+        else customer.loan_applications,
         "form": LoanApplicationForm(customer=customer),
     }
 
     return render(
         request,
-        "best_bank_as/loans/loan_application.html",
+        "best_bank_as/loan_applications/customer_loan_applications_page.html",
         context,
     )
 
 
 @login_required
-def loan_applications_list(request: HttpRequest) -> HttpResponse:
+@decorators.group_required("employee", "supervisor")
+def staff_loan_applications_page(request: HttpRequest) -> HttpResponse:
     """View for listing all loan applications."""
-    ...
+
+    status_filter = request.GET.get("status_filter")
+
+    context = {
+        "loan_applications": LoanApplication.filter_fmt(status=status_filter)
+        if status_filter
+        else LoanApplication.filter_fmt(),
+        "is_customer": False,
+    }
+
+    return render(
+        request,
+        "best_bank_as/loan_applications/staff_loan_applications_page.html",
+        context,
+    )
 
 
 @login_required
-# @require_http_methods(["GET", "DELETE"])
+@decorators.group_required("customer")
 def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given loan application."""
 
     customer = get_object_or_404(Customer, user=request.user)
-    application = get_object_or_404(CustomerApplication, pk=pk)
+    application = get_object_or_404(LoanApplication, pk=pk)
     if application.customer != customer:
         return HttpResponseForbidden(
             render(request, "best_bank_as/error_pages/error_page.html")
         )
 
     if request.method == "DELETE":
+        if application.status == ApplicationStatus.SUPERVISOR_APPROVED:
+            return HttpResponseForbidden("Already approved by supervisor")
+
         application.delete()
-        return redirect("best_bank_as:new_loan_application")
+        return redirect("best_bank_as:loan_application_list")
+
+    context = {
+        "is_customer": True,
+        "loan_application": application,
+        "status_name": application.status_name,
+    }
+
+    return render(
+        request,
+        "best_bank_as/loan_applications/loan_application_details.html",
+        context,
+    )
+
+
+@login_required
+@decorators.group_required("employee", "supervisor")
+def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
+    """Retrieve information for a given loan application, as staff."""
+
+    application = get_object_or_404(LoanApplication, pk=pk)
+
+    if request.method == "DELETE":
+        application.reject()
+        return redirect("approve_loan_applications")
+
+    user = request.user
+
+    if request.method == "PUT":
+        is_employee = not user.groups.filter(name="supervisor").exists()
+
+        if is_employee and application.employee_approved:
+            return HttpResponseForbidden("Already approved by employee")
+
+        if is_employee:
+            application.employee_approve(user)
+        else:
+            application.supervisor_approve(user)
+            customer: Customer = application.customer
+            customer.create_loan(application)
+        return redirect("approve_loan_applications")
 
     context = {
         "loan_application": application,
@@ -263,7 +328,7 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
 
     return render(
         request,
-        "best_bank_as/loans/loan_application_details.html",
+        "best_bank_as/loan_applications/loan_application_details.html",
         context,
     )
 
@@ -311,6 +376,7 @@ def get_accounts_for_user(
     return render(request, "best_bank_as/accounts/account_list.html", context)
 
 
+@decorators.group_required("employee")
 def approve_customers_list(request: HttpRequest) -> HttpResponse:
     """Get all pending new customers."""
     customers = Customer.get_pending()

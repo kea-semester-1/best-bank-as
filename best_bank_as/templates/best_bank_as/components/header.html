@@ -7,7 +7,7 @@
                 <li><a href="/accounts/logout">Logout</a></li>
                 {% if not user.is_staff %}
                     <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">My Page</a></li>
-                    <li><a href="{% url 'best_bank_as:new_loan_application' %}">Apply for Loan</a></li>
+                    <li><a href="{% url 'best_bank_as:loan_application_list' %}">Apply for Loan</a></li>
                 {% else %}
                     <li>
                         <details role="list">
@@ -17,7 +17,7 @@
                                     Customers</a></li>
                                 <li><a href="{% url 'best_bank_as:customer' %}">Create Customer</a></li>
                                 <li><a href="{% url 'best_bank_as:approve_customers' %}">Approve Customers</a></li>
-                                <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">Approve
+                                <li><a href="{% url 'best_bank_as:approve_loan_applications' %}">Approve
                                     Loans</a></li>
                             </ul>
                         </details>
