@@ -40,7 +40,16 @@ services:
             - media:/media/
         depends_on:
             - app
-
+    worker:
+        build: .
+        command: python manage.py rqworker default
+        env_file:
+            - db_${RTE}.env
+        environment:
+            - CONTAINER_ROLE=worker
+        depends_on:
+            - db
+            - redis
 volumes:
     db_data:
     static:

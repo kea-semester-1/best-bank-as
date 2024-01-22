@@ -284,8 +284,15 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
         account_number=destination_account
     )
     amount = form.cleaned_data["amount"]
+
     if int(registration_number) == 1:
-        Ledger.transfer(source_account, destination_account_instance, amount)
+        Ledger.enqueue_external_transfer(
+            source_account=source_account,
+            destination_account=destination_account_instance,
+            amount=amount,
+            registration_number=registration_number,
+        )
+
         return redirect("best_bank_as:index")
 
 

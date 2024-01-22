@@ -48,6 +48,7 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
+    "django_rq",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -155,3 +156,11 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 
+RQ_QUEUES = {
+    "default": {
+        "HOST": "redis",
+        "PORT": "6379",
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 360,
+    }
+}

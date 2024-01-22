@@ -7,6 +7,8 @@ from best_bank_as.enums import AccountStatus
 from best_bank_as.models.core import base_model
 from best_bank_as.models.transaction import Transaction
 from best_bank_as import enums
+from best_bank_as.models.bank import Bank
+import django_rq
 
 
 class Ledger(base_model.BaseModel):
@@ -58,6 +60,7 @@ class Ledger(base_model.BaseModel):
             transaction_id=new_transaction,
         )
 
+    @classmethod
     @transaction.atomic
     def transfer_external(
         cls,
@@ -70,27 +73,44 @@ class Ledger(base_model.BaseModel):
             raise ValueError("Registration number must be input")
 
         if amount <= 0:
+            print(amount)
             raise ValueError("Amount must be a positive number.")
 
         # TODO: Handle this with better error page and handling.
         if source_account.get_balance() < amount:
             raise ValueError("Amount cannot be less than balance")
 
+        try:
+            bank = Bank.objects.get(pk=destination_reg_no)
+        except Bank.DoesNotExist:
+            raise ValueError("Bank with the given registration number does not exist")
+
         new_transaction = Transaction.objects.create()
 
         # Source account
         cls.objects.create(
             amount=-amount,
-            reg_number=destination_reg_no,
-            account_number=source_account,
+            account_number_id=source_account.id,
             transaction_id=new_transaction,
-            registration_number=destination_account,
+            registration_number=bank,
             status=enums.TransactionStatus.PENDING,
         )
 
     @classmethod
-    def enqueue_external_transfer() -> None:
-        pass
+    def enqueue_external_transfer(
+        cls,
+        source_account: Any,
+        registration_number: Any,
+        destination_account: Any,
+        amount: Decimal,
+    ) -> None:
+        django_rq.enqueue(
+            cls.transfer_external,
+            amount=amount,
+            source_account=source_account,
+            destination_reg_no=registration_number,
+            destination_account=destination_account,
+        )
 
     def set_status(cls, transaction_id: int, status: enums.TransactionStatus) -> None:
         ledger = cls.objects.filter(transaction_id=transaction_id)
