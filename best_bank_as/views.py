@@ -85,11 +85,15 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
                 customer = get_object_or_404(Customer, pk=pk)
 
             try:
-                new_account = Account.request_new_account(customer=customer, status=set_status)
-                status_label = new_account.get_account_status_display()  
+                new_account = Account.request_new_account(
+                    customer=customer, status=set_status
+                )
+                status_label = new_account.get_account_status_display()
             except Exception as e:
                 context = {"error": str(e)}
-                return render(request, "best_bank_as/error_pages/error_page.html", context)
+                return render(
+                    request, "best_bank_as/error_pages/error_page.html", context
+                )
 
             response_text = (
                 f"Status: {status_label},"  # Use the label here
@@ -98,7 +102,7 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
             context = {"data": response_text}
             return render(
                 request, "best_bank_as/accounts/request_account_partial.html", context
-)
+            )
 
     # Default context for GET request if not returned inside the IF block
     context = {}
