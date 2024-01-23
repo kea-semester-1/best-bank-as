@@ -183,8 +183,8 @@ class Ledger(base_model.BaseModel):
     ) -> None:
         # form data
         data = {
-            "source_account": source_account.id,
-            "destination_account": destination_account.id,
+            "source_account": source_account,
+            "destination_account": destination_account,
             "registration_number": "6666",
             "amount": amount,
         }

@@ -42,7 +42,7 @@ if RTE is RuntimeEnvironment.dev:
     DEBUG = True
     ALLOWED_HOSTS = ["app", "localhost", "127.0.0.1"]
 else:
-    DEBUG = False
+    DEBUG = True
     ALLOWED_HOSTS = ["what-lol.dk", "www.what-lol.dk"]
 
 # Application definition

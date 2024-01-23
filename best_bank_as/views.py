@@ -408,8 +408,6 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
         # Handle any specific exceptions that your transfer logic might raise
         return JsonResponse({"error": str(e)}, status=500)
 
-    return JsonResponse({"message": "Unknown error"}, status=500)
-
 
 @login_required
 def get_accounts_for_user(
