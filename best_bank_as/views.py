@@ -451,7 +451,8 @@ def customer_list(request: HttpRequest) -> HttpResponse:
                 print(f"*** Sending email to {new_user.email} ***")
                 send_mail(
                     subject="Welcome to Best Bank AS",
-                    message=f"Your password is: {random_password}",
+                    message=f"Your password is: '{random_password}' - "
+                    "Make sure to reset it as soon as possible.",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[new_user.email],
                 )
