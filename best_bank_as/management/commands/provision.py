@@ -18,7 +18,6 @@ def create_groups() -> None:
 
     base_permissions = [
         "view_account",
-        "view_accounttype",
         "view_customer",
         "view_ledger",
         "view_loanapplication",
@@ -35,9 +34,7 @@ def create_groups() -> None:
     ]
 
     employee_permissions = customer_permissions + [
-        "add_accounttype",
         "add_customer",
-        "change_accounttype",
         "change_customer",
         "change_ledger",
         "change_loanapplication",
@@ -66,7 +63,7 @@ def create_groups() -> None:
 
 
 @atomic
-def create_internal_bank_account() -> None:
+def create_internal_bank_account() -> Account:
     """Create internal bank account."""
     account = Account.objects.create(
         account_type=enums.AccountType.INTERNAL,
@@ -82,6 +79,8 @@ def create_internal_bank_account() -> None:
         transaction=transaction,
         amount=1000000,
     )
+
+    return account
 
 
 class Command(BaseCommand):
