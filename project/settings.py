@@ -48,6 +48,7 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
+    "django_rq",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -153,7 +154,7 @@ STATIC_ROOT = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = ["https://what-lol.dk", "https://www.what-lol.dk"]
 
@@ -165,3 +166,12 @@ EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
 DEFAULT_FROM_EMAIL = os.environ["DEFAULT_FROM_EMAIL"]
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+RQ_QUEUES = {
+    "default": {
+        "HOST": "redis",
+        "PORT": "6379",
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 360,
+    }
+}

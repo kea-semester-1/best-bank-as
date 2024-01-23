@@ -343,14 +343,28 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
             "best_bank_as/handle_funds/transfer-money.html",
             {"form": form},
         )
+    source_account = form.cleaned_data["source_account"]
+    destination_account = form.cleaned_data["destination_account"]
+    registration_number = form.cleaned_data["registration_number"]
+    amount = form.cleaned_data["amount"]
 
-    Ledger.transfer(
-        source_account=Account.objects.get(pk=form.cleaned_data["amount"]),
-        destination_account=Account.objects.get(
-            pk=form.cleaned_data["destination_account"]
-        ),
-        amount=form.cleaned_data["amount"],
-    )
+    if registration_number != "6666":
+        Ledger.enqueue_external_transfer(
+            source_account=source_account,
+            destination_account=destination_account,
+            amount=amount,
+            registration_number=registration_number,
+        )
+        messages.success(request, "External transfer initiated successfully.")
+    else:
+        destination_account_instance = Account.objects.get(pk=destination_account)
+        Ledger.transfer(
+            source_account=source_account,
+            destination_account=destination_account_instance,
+            amount=amount,
+        )
+        messages.success(request, "Internal transfer completed successfully.")
+
     return redirect("best_bank_as:index")
 
 
@@ -366,6 +380,7 @@ def get_accounts_for_user(
     customer = get_object_or_404(Customer, user=pk)
 
     accounts = customer.get_accounts()
+    print(accounts)
 
     context = {"accounts": accounts}
     return render(request, "best_bank_as/accounts/account_list.html", context)
