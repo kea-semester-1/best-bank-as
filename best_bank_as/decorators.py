@@ -3,7 +3,9 @@
 from functools import wraps
 from typing import Any, Literal
 
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.contrib.auth.decorators import login_required
+from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
 
 
 def group_required(*group_names: Literal["customer", "employee", "supervisor"]) -> Any:
@@ -11,17 +13,19 @@ def group_required(*group_names: Literal["customer", "employee", "supervisor"]) 
 
     def _decorator(view_func: Any) -> Any:  # Callable
         @wraps(view_func)
+        @login_required
         def _wrapped_view(
             request: HttpRequest, *args: Any, **kwargs: Any
         ) -> HttpResponse:
-            if request.user.is_superuser:
+            if request.user.is_staff or request.user.is_superuser:
                 return view_func(request, *args, **kwargs)
 
             groups = request.user.groups.all()
 
             if not any(group.name in group_names for group in groups):
-                return HttpResponseForbidden(
-                    "You are not authorized to view this page."
+                return render(
+                    request,
+                    "best_bank_as/error_pages/error_page.html",
                 )
 
             return view_func(request, *args, **kwargs)
