@@ -18,6 +18,7 @@ uvicorn = "^0.24.0.post1"
 sendgrid = "^6.11.0"
 django-rq = "^2.10.1"
 requests = "^2.31.0"
+django-cors-headers = "^4.3.1"
 types-requests = "^2.31.0.20240106"
 
 
