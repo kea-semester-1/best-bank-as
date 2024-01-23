@@ -365,13 +365,6 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
         )
         messages.success(request, "Internal transfer completed successfully.")
 
-    Ledger.transfer(
-        source_account=Account.objects.get(pk=form.cleaned_data["source_account"]),
-        destination_account=Account.objects.get(
-            pk=form.cleaned_data["destination_account"]
-        ),
-        amount=form.cleaned_data["amount"],
-    )
     return redirect("best_bank_as:index")
 
 
