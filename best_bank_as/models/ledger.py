@@ -5,6 +5,7 @@ from urllib.parse import urlencode
 import django_rq
 import requests
 from django.db import models
+from django.db.transaction import atomic
 
 from best_bank_as import enums
 from best_bank_as.enums import AccountStatus
