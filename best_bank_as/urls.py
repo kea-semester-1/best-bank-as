@@ -56,4 +56,5 @@ urlpatterns = [
     ),
     # Transfers
     path("transfer/", views.transaction_list, name="transfer_money"),
+     path('external-transfer/', views.external_transfer, name='external-transfer'),
 ]

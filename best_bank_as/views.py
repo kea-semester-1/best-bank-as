@@ -2,8 +2,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
-from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.db.models import Q, ObjectDoesNotExist
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.crypto import get_random_string
 
@@ -24,6 +24,7 @@ from best_bank_as.forms.customer_form import (
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
+from best_bank_as.forms.external_transfer_form import ExternalTransferForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.ledger import Ledger
@@ -374,45 +375,40 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     return redirect("best_bank_as:index")
 
 
-@login_required()
-def external_transfer(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
-    """View to transfer money from account to account."""
+def external_transfer(request: HttpRequest) -> HttpResponse:
+    """View to handle incoming external money transfers."""
     if request.method != "POST":
-        return render(
-            request,
-            "best_bank_as/handle_funds/transfer-money.html",
-            {"form": TransferForm(user=request.user)},
-        )
-    form = TransferForm(data=request.POST, user=request.user)
-    if not form.is_valid():  # or throw exception
-        return render(
-            request,
-            "best_bank_as/handle_funds/transfer-money.html",
-            {"form": form},
-        )
-    source_account = form.cleaned_data["source_account"]
-    destination_account = form.cleaned_data["destination_account"]
-    registration_number = form.cleaned_data["registration_number"]
+        return JsonResponse({"message": "Method not allowed"}, status=405)
+
+    form = ExternalTransferForm(data=request.POST)
+    if not form.is_valid():
+        return JsonResponse({"errors": form.errors}, status=400)
+
+    # Extract validated data
+    source_account_id = 1
+    destination_account_id = form.cleaned_data["destination_account"]
     amount = form.cleaned_data["amount"]
 
-    if registration_number != "6666":
-        Ledger.enqueue_external_transfer(
-            source_account=source_account,
+    # Validate and process the accounts
+    try:
+        destination_account = Account.objects.get(pk=destination_account_id)
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "Destination account not found"}, status=404)
+
+    # Assuming Ledger.transfer is the method to transfer funds internally
+    try:
+        # Perform the transfer logic
+        Ledger.transfer(
+            source_account=source_account_id,  # Assuming this is an ID or external reference
             destination_account=destination_account,
             amount=amount,
-            registration_number=registration_number,
         )
-        messages.success(request, "External transfer initiated successfully.")
-    else:
-        destination_account_instance = Account.objects.get(pk=destination_account)
-        Ledger.transfer(
-            source_account=source_account,
-            destination_account=destination_account_instance,
-            amount=amount,
-        )
-        messages.success(request, "Internal transfer completed successfully.")
+        return JsonResponse({"message": "Transfer completed successfully."}, status=200)
+    except Exception as e:
+        # Handle any specific exceptions that your transfer logic might raise
+        return JsonResponse({"error": str(e)}, status=500)
 
-    return redirect("best_bank_as:index")
+    return JsonResponse({"message": "Unknown error"}, status=500)
 
 
 @login_required

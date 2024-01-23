@@ -190,7 +190,7 @@ class Ledger(base_model.BaseModel):
         }
         session = cls.login_and_get_session()
         # URL of the external bank's `transaction_list` view
-        external_bank_url = "https://www.what-lol.dk/transfer/"
+        external_bank_url = "https://www.what-lol.dk/external-transfer/"
         csrf_token = session.cookies.get("csrftoken")
         try:
             headers = {
