@@ -16,7 +16,7 @@
                 <td>{{ transaction.transaction_id }}</td>
                 <td>{{ transaction.counterpart_account_number }}</td>
                 <td>{{ transaction.amount }}</td>
-                <td>{{ transaction.date|date:"F d, Y" }}</td>
+                <td>{{ transaction.created_at|date:"F d, Y" }}</td>
             </tr>
             {% endfor %}
         </tbody>

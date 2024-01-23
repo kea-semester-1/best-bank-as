@@ -50,7 +50,6 @@ class AccountType(BaseEnum):
     - `SAVINGS` - Account is a savings account.
     - `CHECKING` - Account is a checking account.
     - `LOAN` - Account is a loan account.
-
     - `INTERNAL` - Account is an internal account,
     meaning that it belongs to the bank.
     """
@@ -86,6 +85,19 @@ class CustomerStatus(BaseEnum):
 
     PENDING = 1
     APPROVED = 2
+    REJECTED = 3
+
+
+class TransactionStatus(BaseEnum):
+    """Status for transactions.
+
+    - `PENDING` - Transaction is pending
+    - `PROCESSED` - Transaction is approved
+    - `REJECTED` - Transaction is rejected
+    """
+
+    PENDING = 1
+    PROCESSED = 2
     REJECTED = 3
 
 

@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
 from django.db import models
-from django.db.models import Sum
+from django.db.models import OuterRef, Subquery, Sum
 
 from best_bank_as import enums
 from best_bank_as.enums import AccountStatus
@@ -55,31 +55,23 @@ class Account(base_model.BaseModel):
         - date: Transaction date
         """
 
-        # Fetch all transaction IDs related to this account.
-        related_ledger_entries = (
-            Ledger.objects.filter(account=self)
-            .select_related("account_number", "transaction_id")
-            .order_by("transaction_id_id", "created_at")
+        counterpart_subquery = (
+            Ledger.objects.filter(transaction_id=OuterRef("transaction_id"))
+            .exclude(account=self)
+            .values("account_id")[:1]
         )
 
-        transactions = []
+        # Fetch transactions with related counterpart account information
+        transactions = (
+            Ledger.objects.filter(account=self)
+            .annotate(counterpart_account_number=Subquery(counterpart_subquery))
+            .values(
+                "transaction_id", "amount", "created_at", "counterpart_account_number"
+            )
+            .order_by("transaction_id")
+        )
 
-        for entry in related_ledger_entries:
-            # Determine the counterpart entry (either source or destination)
-            counterpart_entries = Ledger.objects.filter(
-                transaction_id=entry.transaction_id
-            ).exclude(account_number=self)
-
-            for counterpart in counterpart_entries:
-                transaction_data = {
-                    "transaction_id": entry.transaction_id_id,
-                    "counterpart_account_number": counterpart.account.account_number,  # noqa: E501
-                    "amount": entry.amount,
-                    "date": entry.created_at,
-                }
-                transactions.append(transaction_data)
-
-        return transactions
+        return list(transactions)
 
     @classmethod
     def request_new_account(

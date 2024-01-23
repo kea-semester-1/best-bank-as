@@ -1,9 +1,11 @@
 #!/bin/sh
 
 echo "${RTE} Runtime Environment - Running entrypoint."
+if [ "$CONTAINER_ROLE" = "worker" ]; then
+    # Start the RQ worker
+    exec python manage.py rqworker default
 
-
-if [ "$RTE" = "dev" ]; then
+elif [ "$RTE" = "dev" ]; then
 
     python manage.py makemigrations --merge
     python manage.py migrate --noinput
