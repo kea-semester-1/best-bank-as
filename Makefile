@@ -11,7 +11,7 @@ run: ## Run the application
 
 migration: ## Migrate to latest database version
 	@echo "Upgrading database..."
-	docker container exec $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py migrate
+	docker container exec $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py migrate
 
 migration-revert: ## Revert to previous database version
 	@echo "Downgrading database..."
@@ -44,7 +44,7 @@ reboot: # Remove container, images and volumes
 
 provision: ## Create provisions
 	@echo "Creating provision..."
-	docker container exec -it $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py provision
+	docker container exec -it $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py provision
 
 demodata: ## Create demodata
 	@echo "Creating demodata..."
