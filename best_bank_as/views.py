@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
@@ -27,6 +28,7 @@ from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.ledger import Ledger
 from best_bank_as.models.loan_application import LoanApplication
+from project import settings
 
 status_list = AccountStatus.name_value_pairs()
 rank_list = CustomerRank.name_value_pairs()
@@ -188,16 +190,12 @@ def search_customer(request: HttpRequest) -> HttpResponse:
     )
 
 
-@login_required
 @decorators.group_required("customer")
 def loan_application_list(request: HttpRequest) -> HttpResponse:
     """View for creating a new loan application."""
 
     customer = get_object_or_404(Customer, user=request.user)
-
     status_filter = request.GET.get("status_filter")
-
-    print(status_filter)
 
     if request.method == "POST":
         if not customer.can_loan:
@@ -240,7 +238,6 @@ def loan_application_list(request: HttpRequest) -> HttpResponse:
     )
 
 
-@login_required
 @decorators.group_required("employee", "supervisor")
 def staff_loan_applications_page(request: HttpRequest) -> HttpResponse:
     """View for listing all loan applications."""
@@ -261,7 +258,6 @@ def staff_loan_applications_page(request: HttpRequest) -> HttpResponse:
     )
 
 
-@login_required
 @decorators.group_required("customer")
 def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given loan application."""
@@ -293,7 +289,6 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-@login_required
 @decorators.group_required("employee", "supervisor")
 def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given loan application, as staff."""
@@ -421,6 +416,7 @@ def approve_customers_details(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
+@decorators.group_required("employee", "supervisor")
 def customer_list(request: HttpRequest) -> HttpResponse:
     """Create a new customer profile."""
     if request.method == "GET":
@@ -452,9 +448,14 @@ def customer_list(request: HttpRequest) -> HttpResponse:
                 new_customer.user = new_user
                 new_customer.save()
 
-        # TODO: Implement email service, providing user with
-        #  their new temporaly password and let them know to reset
-
+                print(f"*** Sending email to {new_user.email} ***")
+                send_mail(
+                    subject="Welcome to Best Bank AS",
+                    message=f"Your password is: '{random_password}' - "
+                    "Make sure to reset it as soon as possible.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[new_user.email],
+                )
         else:
             user_form = UserCreationForm(request.POST)
             customer_form = CustomerCreationForm(request.POST)

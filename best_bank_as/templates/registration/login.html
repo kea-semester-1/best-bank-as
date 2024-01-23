@@ -13,7 +13,8 @@
             {{ form }}
             <button>Log In</button>
         </form>
-
         <a href="{% url 'best_bank_as:create_customer' %}">Don't have an account? Register</a>
+        <br>
+        <a href="{% url 'password_reset' %}">Forgot password?</a>
     {% endblock %}
 </html>
