@@ -153,7 +153,7 @@ class Ledger(base_model.BaseModel):
 
             # POST request with CSRF token and credentials
             credentials = {
-                "username": "Mo",
+                "username": "Malthe",
                 "password": "123",
                 "csrfmiddlewaretoken": csrf_token,
             }
@@ -183,8 +183,8 @@ class Ledger(base_model.BaseModel):
     ) -> None:
         # form data
         data = {
-            "source_account": source_account,
-            "destination_account": destination_account,
+            "source_account": source_account.id,
+            "destination_account": destination_account.id,
             "registration_number": "6666",
             "amount": amount,
         }
@@ -197,9 +197,7 @@ class Ledger(base_model.BaseModel):
                 "Content-Type": "application/x-www-form-urlencoded",
                 "X-CSRFToken": csrf_token,
             }
-            response = session.post(
-                external_bank_url, data=urlencode(data), headers=headers
-            )
+            response = session.post(external_bank_url, data=data, headers=headers)
             response.raise_for_status()
 
             # if response.status_code == 200:

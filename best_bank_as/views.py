@@ -33,6 +33,11 @@ from project import settings
 status_list = AccountStatus.name_value_pairs()
 rank_list = CustomerRank.name_value_pairs()
 
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 
 def index(request: HttpRequest) -> HttpResponse:
     """View for index."""
@@ -329,6 +334,48 @@ def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpRespons
 
 @login_required()
 def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
+    """View to transfer money from account to account."""
+    if request.method != "POST":
+        return render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {"form": TransferForm(user=request.user)},
+        )
+    form = TransferForm(data=request.POST, user=request.user)
+    if not form.is_valid():  # or throw exception
+        logger.error(f"TransferForm is not valid. Errors: {form.errors}")
+        return render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {"form": form},
+        )
+    source_account = form.cleaned_data["source_account"]
+    destination_account = form.cleaned_data["destination_account"]
+    registration_number = form.cleaned_data["registration_number"]
+    amount = form.cleaned_data["amount"]
+
+    if registration_number != "6666":
+        Ledger.enqueue_external_transfer(
+            source_account=source_account,
+            destination_account=destination_account,
+            amount=amount,
+            registration_number=registration_number,
+        )
+        messages.success(request, "External transfer initiated successfully.")
+    else:
+        destination_account_instance = Account.objects.get(pk=destination_account)
+        Ledger.transfer(
+            source_account=source_account,
+            destination_account=destination_account_instance,
+            amount=amount,
+        )
+        messages.success(request, "Internal transfer completed successfully.")
+
+    return redirect("best_bank_as:index")
+
+
+@login_required()
+def external_transfer(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
     """View to transfer money from account to account."""
     if request.method != "POST":
         return render(
