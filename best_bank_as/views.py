@@ -390,23 +390,18 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
     amount = form.cleaned_data["amount"]
 
     # Validate and process the accounts
-    try:
-        destination_account = Account.objects.get(pk=destination_account_id)
-    except ObjectDoesNotExist:
-        return JsonResponse({"error": "Destination account not found"}, status=404)
+
+    destination_account = Account.objects.get(pk=destination_account_id)
 
     # Assuming Ledger.transfer is the method to transfer funds internally
-    try:
-        # Perform the transfer logic
-        Ledger.transfer(
-            source_account=source_account_id,  # Assuming this is an ID or external reference
-            destination_account=destination_account,
-            amount=amount,
-        )
-        return JsonResponse({"message": "Transfer completed successfully."}, status=200)
-    except Exception as e:
-        # Handle any specific exceptions that your transfer logic might raise
-        return JsonResponse({"error": str(e)}, status=500)
+
+    # Perform the transfer logic
+    Ledger.transfer(
+        source_account=source_account_id,  # Assuming this is an ID or external reference
+        destination_account=destination_account,
+        amount=amount,
+    )
+    return JsonResponse({"message": "Transfer completed successfully."}, status=200)
 
 
 @login_required
