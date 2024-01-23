@@ -15,7 +15,6 @@ def create_groups() -> None:
 
     base_permissions = [
         "view_account",
-        "view_accounttype",
         "view_customer",
         "view_ledger",
         "view_loanapplication",
@@ -32,9 +31,7 @@ def create_groups() -> None:
     ]
 
     employee_permissions = customer_permissions + [
-        "add_accounttype",
         "add_customer",
-        "change_accounttype",
         "change_customer",
         "change_ledger",
         "change_loanapplication",
