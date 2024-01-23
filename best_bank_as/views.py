@@ -350,7 +350,7 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
         )
 
     Ledger.transfer(
-        source_account=Account.objects.get(pk=form.cleaned_data["amount"]),
+        source_account=Account.objects.get(pk=form.cleaned_data["source_account"]),
         destination_account=Account.objects.get(
             pk=form.cleaned_data["destination_account"]
         ),

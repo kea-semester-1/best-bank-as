@@ -12,6 +12,7 @@ services:
 
     app:
         build: .
+        container_name: best-bank-as_app
         env_file:
             - db_${RTE}.env
         volumes:

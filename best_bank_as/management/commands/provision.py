@@ -60,7 +60,7 @@ def create_groups() -> None:
 
 
 @atomic
-def create_internal_bank_account() -> None:
+def create_internal_bank_account() -> Account:
     """Create internal bank account."""
     account = Account.objects.create(
         account_type=enums.AccountType.INTERNAL,
@@ -76,6 +76,8 @@ def create_internal_bank_account() -> None:
         transaction=transaction,
         amount=1000000,
     )
+
+    return account
 
 
 class Command(BaseCommand):

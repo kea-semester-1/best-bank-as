@@ -2,7 +2,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.db import models
-from django.db.transaction import atomic
 
 from best_bank_as.enums import AccountStatus
 from best_bank_as.models.core import base_model
@@ -28,7 +27,6 @@ class Ledger(base_model.BaseModel):
     amount = models.DecimalField(max_digits=15, decimal_places=2)
 
     @classmethod
-    @atomic
     def transfer(
         cls, source_account: "Account", destination_account: "Account", amount: Decimal
     ) -> None:
