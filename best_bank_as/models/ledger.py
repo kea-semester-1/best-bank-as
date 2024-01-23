@@ -138,6 +138,14 @@ class Ledger(base_model.BaseModel):
         ledger.update(status=status)
 
     @classmethod
+    def get_auth_token(cls) -> None:
+        login_url = "http://app:8000/accounts/login/"
+        credentials = {"username": "Mo", "password": "123"}
+        response = requests.post(login_url, data=credentials)
+        response.raise_for_status()
+        return response.json().get("token")
+
+    @classmethod
     def initiate_external_transfer(
         cls,
         source_account: Any,
@@ -152,12 +160,15 @@ class Ledger(base_model.BaseModel):
             "registration_number": destination_reg_no,
             "amount": amount,
         }
-
+        token = cls.get_auth_token()
         # URL of the external bank's `transaction_list` view
-        external_bank_url = "https://externalbank.com/transaction_list"
+        external_bank_url = "http://app:8000/transfer/"
 
         try:
-            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Authorization": f"Token {token}",
+            }
             response = requests.post(
                 external_bank_url, data=urlencode(data), headers=headers
             )

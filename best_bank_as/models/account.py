@@ -58,8 +58,8 @@ class Account(base_model.BaseModel):
         # Fetch all transaction IDs related to this account.
         related_ledger_entries = (
             Ledger.objects.filter(account=self)
-            .select_related("account_number", "transaction_id")
-            .order_by("transaction_id_id", "created_at")
+            .select_related("account", "transaction")
+            .order_by("transaction", "created_at")
         )
 
         transactions = []
@@ -68,11 +68,11 @@ class Account(base_model.BaseModel):
             # Determine the counterpart entry (either source or destination)
             counterpart_entries = Ledger.objects.filter(
                 transaction_id=entry.transaction_id
-            ).exclude(account_number=self)
+            ).exclude(account=self)
 
             for counterpart in counterpart_entries:
                 transaction_data = {
-                    "transaction_id": entry.transaction_id_id,
+                    "transaction_id": entry.transaction_id,
                     "counterpart_account_number": counterpart.account.account_number,  # noqa: E501
                     "amount": entry.amount,
                     "date": entry.created_at,
