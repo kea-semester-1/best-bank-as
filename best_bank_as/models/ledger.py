@@ -138,12 +138,42 @@ class Ledger(base_model.BaseModel):
         ledger.update(status=status)
 
     @classmethod
-    def get_auth_token(cls) -> None:
-        login_url = "http://app:8000/accounts/login/"
-        credentials = {"username": "Mo", "password": "123"}
-        response = requests.post(login_url, data=credentials)
-        response.raise_for_status()
-        return response.json().get("token")
+    def login_and_get_session(cls) -> None:
+        with requests.Session() as session:
+            # GET request to fetch CSRF token
+            login_url = "https://www.what-lol.dk/accounts/login/"
+            initial_response = session.get(login_url)
+            initial_response.raise_for_status()
+
+            # Extract CSRF token from cookies
+            csrf_token = session.cookies.get("csrftoken")
+            print("token!!!!!!!!!!!!!!!", csrf_token)
+            print("Cookies after GET request:", session.cookies.get_dict())
+
+            if not csrf_token:
+                raise ValueError("CSRF token not found in initial response")
+
+            # POST request with CSRF token and credentials
+            credentials = {
+                "username": "Mo",
+                "password": "123",
+                "csrfmiddlewaretoken": csrf_token,
+            }
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Referer": login_url,  # Adding the Referer header
+                "X-CSRFToken": csrf_token,
+            }
+
+            login_response = session.post(
+                url=login_url, data=credentials, headers=headers, allow_redirects=False
+            )
+            print(login_response.__dict__)
+
+            login_response.raise_for_status()
+
+            # Return the session for subsequent authenticated requests
+            return session
 
     @classmethod
     def initiate_external_transfer(
@@ -153,36 +183,33 @@ class Ledger(base_model.BaseModel):
         destination_account: Any,
         amount: Decimal,
     ) -> None:
-        # Construct the form data
+        # form data
         data = {
             "source_account": source_account,
             "destination_account": destination_account,
-            "registration_number": destination_reg_no,
+            "registration_number": "6666",
             "amount": amount,
         }
-        token = cls.get_auth_token()
+        session = cls.login_and_get_session()
         # URL of the external bank's `transaction_list` view
-        external_bank_url = "http://app:8000/transfer/"
-
+        external_bank_url = "https://www.what-lol.dk/transfer/"
+        csrf_token = session.cookies.get("csrftoken")
         try:
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
-                "Authorization": f"Token {token}",
+                "X-CSRFToken": csrf_token,
             }
-            response = requests.post(
+            response = session.post(
                 external_bank_url, data=urlencode(data), headers=headers
             )
             response.raise_for_status()
 
-            if response.status_code == 200:
-                # Assuming a successful response indicates the external transfer has been initiated
-                # You might want to check the response content for specific confirmation details
-                cls.finalize_external_transfer(
-                    source_account,
-                    destination_reg_no,
-                    destination_account,
-                    amount,
-                )
+            # if response.status_code == 200:
+            #     cls.finalize_external_transfer(
+            #         source_account,
+            #         destination_account,
+            #         amount,
+            #     )
         except requests.RequestException as e:
             print(e)
 
