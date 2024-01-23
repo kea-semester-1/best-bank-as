@@ -1,18 +1,17 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+from urllib.parse import urlencode
 
-from django.db import models
-from django.db.transaction import atomic
-from typing import Any
-
-from best_bank_as.enums import AccountStatus
-from best_bank_as.models.core import base_model
-from best_bank_as.models.transaction import Transaction
-from best_bank_as import enums
-from best_bank_as.models.bank import Bank
 import django_rq
 import requests
-from urllib.parse import urlencode
+from django.db import models
+from django.db.transaction import atomic
+
+from best_bank_as import enums
+from best_bank_as.enums import AccountStatus
+from best_bank_as.models.bank import Bank
+from best_bank_as.models.core import base_model
+from best_bank_as.models.transaction import Transaction
 
 if TYPE_CHECKING:
     from best_bank_as.models.account import Account

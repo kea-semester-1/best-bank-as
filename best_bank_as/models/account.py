@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
 from django.db import models
-from django.db.models import Sum, Subquery, OuterRef
+from django.db.models import OuterRef, Subquery, Sum
 
 from best_bank_as import enums
 from best_bank_as.enums import AccountStatus

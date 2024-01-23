@@ -23,7 +23,3 @@ class TransferForm(forms.Form):
         self.fields["source_account"].queryset = Account.objects.filter(
             customer=user.customer, account_status=AccountStatus.ACTIVE
         )
-
-
-class TransferFormExternal(TransferForm):
-    destination_reg_no: int
