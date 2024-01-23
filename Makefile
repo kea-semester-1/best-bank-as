@@ -48,4 +48,8 @@ provision: ## Create provisions
 
 demodata: ## Create demodata
 	@echo "Creating demodata..."
-	docker container exec -it $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py demodata
+	docker container exec -it $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py demodata
+
+test: ## Run tests
+	@echo "Running tests..."
+	docker container exec -it $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py test
