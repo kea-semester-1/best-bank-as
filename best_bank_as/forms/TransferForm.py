@@ -1,3 +1,4 @@
+import os
 from typing import Any
 
 from django import forms
@@ -23,3 +24,4 @@ class TransferForm(forms.Form):
         self.fields["source_account"].queryset = Account.objects.filter(
             customer=user.customer, account_status=AccountStatus.ACTIVE
         )
+        self.fields["registration_number"].widget.attrs["placeholder"] = os.environ["BANK_REGISTRATION_NUMBER"]
