@@ -49,6 +49,7 @@ else:
 
 INSTALLED_APPS = [
     "django_rq",
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -62,6 +63,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -154,8 +156,11 @@ STATIC_ROOT = "/static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 RQ_QUEUES = {
     "default": {
