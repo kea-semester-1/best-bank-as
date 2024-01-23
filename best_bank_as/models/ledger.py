@@ -97,8 +97,8 @@ class Ledger(base_model.BaseModel):
 
         try:
             bank = Bank.objects.get(registration_number=destination_reg_no)
-        except Bank.DoesNotExist:
-            raise ValueError("Bank with the given registration number does not exist")
+        except Bank.DoesNotExist as e:
+            raise e
 
         new_transaction = Transaction.objects.create()
 
@@ -137,7 +137,7 @@ class Ledger(base_model.BaseModel):
         ledger.update(status=status)
 
     @classmethod
-    def login_and_get_session(cls) -> None:
+    def login_and_get_session(cls) -> requests.Session:
         with requests.Session() as session:
             # GET request to fetch CSRF token
             login_url = "https://www.what-lol.dk/accounts/login/"
