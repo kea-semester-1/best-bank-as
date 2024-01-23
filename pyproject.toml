@@ -12,10 +12,14 @@ ruff = "^0.0.291"
 black = "^23.9.1"
 mypy = "^1.5.1"
 isort = "^5.12.0"
-psycopg2 = "^2.9.9"
 gunicorn = "^21.2.0"
 psycopg2-binary = "^2.9.9"
 uvicorn = "^0.24.0.post1"
+sendgrid = "^6.11.0"
+django-rq = "^2.10.1"
+requests = "^2.31.0"
+django-cors-headers = "^4.3.1"
+types-requests = "^2.31.0.20240106"
 
 
 [build-system]

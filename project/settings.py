@@ -48,6 +48,8 @@ else:
 # Application definition
 
 INSTALLED_APPS = [
+    "django_rq",
+    "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -61,6 +63,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -156,3 +159,24 @@ SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 CSRF_TRUSTED_ORIGINS = ["https://what-lol.dk", "https://www.what-lol.dk"]
+
+# Email settings
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST = "smtp.sendgrid.net"
+EMAIL_HOST_PASSWORD = os.environ["EMAIL_HOST_PASSWORD"]
+DEFAULT_FROM_EMAIL = os.environ["DEFAULT_FROM_EMAIL"]
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+
+RQ_QUEUES = {
+    "default": {
+        "HOST": "redis",
+        "PORT": "6379",
+        "DB": 0,
+        "DEFAULT_TIMEOUT": 360,
+    }
+}

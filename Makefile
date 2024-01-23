@@ -11,15 +11,15 @@ run: ## Run the application
 
 migration: ## Migrate to latest database version
 	@echo "Upgrading database..."
-	docker container exec $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py migrate
+	docker container exec $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py migrate
 
 migration-revert: ## Revert to previous database version
 	@echo "Downgrading database..."
-	docker container exec $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py migrate best_bank_as zero
+	docker container exec $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py migrate best_bank_as zero
 
 migration-generate: ## Generate a new migration file
 	@echo "Generating migration file..."
-	docker container exec $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py makemigrations
+	docker container exec $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py makemigrations
 
 migration-generate-empty: ## Generate a new empty migration file
 	@echo "Generating empty migration file..."
@@ -44,7 +44,7 @@ reboot: # Remove container, images and volumes
 
 provision: ## Create provisions
 	@echo "Creating provision..."
-	docker container exec -it $$(docker ps | grep best-bank-as_app | awk '{print $$1}') python manage.py provision
+	docker container exec -it $$(docker ps | grep best-bank-as-app | awk '{print $$1}') python manage.py provision
 
 demodata: ## Create demodata
 	@echo "Creating demodata..."

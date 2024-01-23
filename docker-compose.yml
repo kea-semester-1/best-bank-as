@@ -10,6 +10,12 @@ services:
         ports:
         - 5438:5432
 
+    redis:
+        image: redis:latest
+        ports:
+            - 6379:6379
+        volumes:
+            - redis_data:/data
     app:
         build: .
         container_name: best-bank-as_app
@@ -21,6 +27,7 @@ services:
             - media:/media/
         depends_on:
             - db
+            - redis
 
     nginx:
         build: nginx/
@@ -34,8 +41,18 @@ services:
             - media:/media/
         depends_on:
             - app
-
+    worker:
+        build: .
+        command: python manage.py rqworker default
+        env_file:
+            - db_${RTE}.env
+        environment:
+            - CONTAINER_ROLE=worker
+        depends_on:
+            - db
+            - redis
 volumes:
     db_data:
     static:
     media:
+    redis_data:

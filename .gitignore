@@ -335,6 +335,9 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
+# xd
+db_env.env
+
 # Windows shortcuts
 *.lnk
 
