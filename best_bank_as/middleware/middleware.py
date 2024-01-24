@@ -6,7 +6,6 @@ from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, QueryDi
 from django.shortcuts import render
 
 from best_bank_as import constants
-from best_bank_as.db_models.customer import Customer
 
 
 class NotFoundMiddleware:
@@ -20,6 +19,10 @@ class NotFoundMiddleware:
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
         response = self.get_response(request)
+        if response is None:
+            return HttpResponseNotFound(
+                render(request, "best_bank_as/error_pages/404_not_found.html")
+            )
         if response.status_code == 404:
             return HttpResponseNotFound(
                 render(request, "best_bank_as/error_pages/404_not_found.html")
@@ -75,31 +78,3 @@ class SessionTimeoutMiddleware:
             logout(request)
 
         return response
-
-
-class RejectedCustomerGuardMiddleware:
-    """Middleware for rejecting customers."""
-
-    def __init__(self, get_response: HttpResponse):  # type : ignore
-        """Init method for rejected customer guard middleware."""
-        self.get_response = get_response
-
-    def __call__(self, request: HttpRequest) -> HttpResponse:
-        """Call method for rejected customer guard middleware."""
-        response = self.get_response(request)
-        if not request.user.is_authenticated:
-            return response
-
-        if not hasattr(request.user, "customer"):
-            return response
-
-        customer: Customer = request.user.customer
-
-        if customer.is_rejected:
-            return HttpResponseNotFound(
-                render(
-                    request,
-                    "best_bank_as/error_pages/error_page.html",
-                    context={"error": "You are rejected"},
-                )
-            )

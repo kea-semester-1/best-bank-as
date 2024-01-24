@@ -50,12 +50,12 @@ class LoanApplication(base_model.BaseModel):
     def reject(self) -> None:
         """Soft delete the loan application."""
         self.status = enums.ApplicationStatus.REJECTED
+        self.employee_approved = None
+        self.supervisor_approved = None
         self.save()
 
     def employee_approve(self, user: User) -> None:
         """Employee approve the loan application."""
-        if self.status != enums.ApplicationStatus.PENDING:
-            raise ValueError("Cannot approve a non-pending application.")
 
         self.status = enums.ApplicationStatus.EMPLOYEE_APPROVED
         self.employee_approved = user

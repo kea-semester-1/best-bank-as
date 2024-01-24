@@ -18,7 +18,7 @@ class CustomerManager(models.Manager):
 
     def create(self, **kwargs: Any) -> "Customer":
         customer = super().create(**kwargs)
-        group = Group.objects.get_object_or_404(name="customer")
+        group = Group.objects.get(name="customer")
         customer.user.groups.add(group)
         return customer
 

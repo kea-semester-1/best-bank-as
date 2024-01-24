@@ -200,7 +200,7 @@ def loan_application_list(request: HttpRequest) -> HttpResponse:
             customer=customer,
         )
         application.save()
-        return redirect("best_bank_as:loan_application_list")
+        # return redirect("best_bank_as:loan_application_list")
 
     context = {
         "customer": customer,
@@ -256,7 +256,8 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
             return HttpResponseForbidden("Already approved by supervisor")
 
         application.delete()
-        return redirect("best_bank_as:loan_application_list")
+        messages.success(request, "Loan application was successfully deleted.")
+        # return redirect("best_bank_as:loan_application_list")
 
     context = {
         "is_customer": True,
@@ -279,23 +280,33 @@ def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpRespons
 
     if request.method == "DELETE":
         application.reject()
-        return redirect("best_bank_as:approve_loan_applications")
+        return
 
     user = request.user
 
     if request.method == "PUT":
         is_employee = not user.groups.filter(name="supervisor").exists()
+        is_supervisor = not is_employee
+
+        print(is_employee, is_supervisor)
+
+        if application.employee_approved and application.supervisor_approved:
+            return HttpResponseForbidden("Already approved by both")
 
         if is_employee and application.employee_approved:
             return HttpResponseForbidden("Already approved by employee")
 
+        if is_supervisor and application.supervisor_approved:
+            return HttpResponseForbidden("Already approved by supervisor")
+
+        print("HERE")
         if is_employee:
             application.employee_approve(user)
         else:
             application.supervisor_approve(user)
             customer: Customer = application.customer
             customer.create_loan(application)
-        return redirect("best_bank_as:approve_loan_applications")
+        return
 
     context = {
         "loan_application": application,

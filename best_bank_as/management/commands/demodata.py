@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import Any
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db.transaction import atomic
 
@@ -9,6 +9,8 @@ from best_bank_as import enums
 from best_bank_as.db_models.account import Account
 from best_bank_as.db_models.customer import Customer
 from best_bank_as.db_models.ledger import Ledger
+
+User = get_user_model()
 
 
 class Command(BaseCommand):
