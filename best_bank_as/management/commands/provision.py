@@ -91,19 +91,6 @@ class Command(BaseCommand):
         """Handle command."""
         print("Provisioning...")
 
-        if not Account.objects.filter(account_type=enums.AccountType.INTERNAL).exists():
-            print("Creating internal bank account...")
-            create_internal_bank_account()
-
-        if not Account.objects.all():
-            Account.objects.create()
-
-        if not Group.objects.all():
-            print("Creating groups...")
-            create_groups()
-        else:
-            print("Groups already created.")
-
         if not Bank.objects.all():
             Bank.objects.create(
                 reg_number="6666",
@@ -124,6 +111,19 @@ class Command(BaseCommand):
                 branch_name="Mo branch",
                 url="https://www.what-lol.dk",
             )
+
+        if not Account.objects.filter(account_type=enums.AccountType.INTERNAL).exists():
+            print("Creating internal bank account...")
+            create_internal_bank_account()
+
+        if not Account.objects.all():
+            Account.objects.create()
+
+        if not Group.objects.all():
+            print("Creating groups...")
+            create_groups()
+        else:
+            print("Groups already created.")
 
         bank = CustomUser.objects.create_user(
             username="bank", email="", password=secrets.token_urlsafe(64)
