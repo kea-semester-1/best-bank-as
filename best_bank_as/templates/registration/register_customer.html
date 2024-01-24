@@ -8,7 +8,7 @@
     {% extends "best_bank_as/base.html" %}
 
     {% block content %}
-    <form method="post" action="{% url 'best_bank_as:create_customer' %}">
+    <form method="post" action="{% url 'best_bank_as:customer_register' %}">
         {% csrf_token %}
         {{ user_form}}
         {{ customer_form }}

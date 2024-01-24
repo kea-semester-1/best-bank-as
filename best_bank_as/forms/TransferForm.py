@@ -4,8 +4,8 @@ from typing import Any
 from django import forms
 from django.contrib.auth.models import User
 
+from best_bank_as.db_models.account import Account
 from best_bank_as.enums import AccountStatus
-from best_bank_as.models.account import Account
 
 
 class TransferForm(forms.Form):
@@ -24,4 +24,6 @@ class TransferForm(forms.Form):
         self.fields["source_account"].queryset = Account.objects.filter(
             customer=user.customer, account_status=AccountStatus.ACTIVE
         )
-        self.fields["registration_number"].widget.attrs["placeholder"] = os.environ["BANK_REGISTRATION_NUMBER"]
+        self.fields["registration_number"].widget.attrs["placeholder"] = os.environ[
+            "BANK_REGISTRATION_NUMBER"
+        ]
