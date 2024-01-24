@@ -43,7 +43,14 @@ if RTE is RuntimeEnvironment.dev:
     ALLOWED_HOSTS = ["app", "localhost", "127.0.0.1"]
 else:
     DEBUG = False
-    ALLOWED_HOSTS = ["what-lol.dk", "www.what-lol.dk"]
+    ALLOWED_HOSTS = [
+        "what-lol.dk",
+        "www.what-lol.dk",
+        "www.my-domain.dk",
+        "my-domain.dk/",
+        "www.malthegram.dk",
+        "malthegram.dk",
+    ]
 
 # Application definition
 
@@ -159,7 +166,14 @@ SECURE_HSTS_SECONDS = 3600
 SECURE_SSL_REDIRECT = False
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ["https://what-lol.dk", "https://www.what-lol.dk"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://what-lol.dk",
+    "https://www.what-lol.dk",
+    "https://my-domain.dk",
+    "https://www.my-domain.dk",
+    "https://malthegram.dk",
+    "https://www.malthegram.dk",
+]
 
 # Email settings
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
