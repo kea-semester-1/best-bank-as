@@ -1,15 +1,15 @@
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db.models import Q
-from django.http import (
-    HttpRequest,
-    HttpResponse,
-    HttpResponseForbidden,
-)
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.crypto import get_random_string
 
 from best_bank_as import decorators
+from best_bank_as.db_models.account import Account
+from best_bank_as.db_models.customer import Customer
+from best_bank_as.db_models.ledger import Ledger
+from best_bank_as.db_models.loan_application import LoanApplication
 from best_bank_as.enums import (
     AccountStatus,
     ApplicationStatus,
@@ -26,10 +26,6 @@ from best_bank_as.forms.customer_form import (
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
-from best_bank_as.models.account import Account
-from best_bank_as.models.customer import Customer
-from best_bank_as.models.ledger import Ledger
-from best_bank_as.models.loan_application import LoanApplication
 from project import settings
 
 status_list = AccountStatus.name_value_pairs()
@@ -112,7 +108,7 @@ def account_details(request: HttpRequest, pk: int) -> HttpResponse:
 
     context = {"account": account, "status_list": status_list}
 
-    if request.user != account.customer.user and not request.user.is_staff:
+    if request.user != account.customer.user and not request.user.is_employee:
         return HttpResponseForbidden(
             render(request, "best_bank_as/error_pages/error_page.html")
         )
@@ -123,7 +119,7 @@ def account_details(request: HttpRequest, pk: int) -> HttpResponse:
 
         context = {"balance": balance, "transactions": transactions}
 
-    if request.method == "PUT" and request.user.is_staff:
+    if request.method == "PUT" and request.user.is_employee:
         data = request.PUT
         value = data.get("account_status")
         try:
@@ -151,8 +147,6 @@ def staff_page(request: HttpRequest) -> HttpResponse:
 def staff_customer_list(request: HttpRequest) -> HttpResponse:
     """View for searching customers."""
     query = request.GET.get("query", "")
-    if not request.user.is_staff:
-        return HttpResponseForbidden()
 
     customers = (
         Customer.objects.filter(
@@ -402,14 +396,14 @@ def customers_approve_details(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
-@decorators.group_required("employee", "supervisor")
 def customer_list(request: HttpRequest) -> HttpResponse:
     """Create a new customer profile."""
+    is_employee = hasattr(request.user, "is_employee") and request.user.is_employee
     if request.method == "GET":
         user_form = UserCreationForm()
         customer_form = CustomerCreationForm()
 
-        if request.user.is_staff:
+        if is_employee:
             user_form = UserCreationByEmployeeForm()
             context = {"userForm": user_form, "customerForm": customer_form}
             return render(
@@ -417,7 +411,7 @@ def customer_list(request: HttpRequest) -> HttpResponse:
             )
 
     if request.method == "POST":
-        if request.user.is_staff:
+        if is_employee:
             user_form = UserCreationByEmployeeForm(request.POST)
             customer_form = CustomerCreationForm(request.POST)
 
@@ -481,7 +475,7 @@ def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
         data = request.PUT
         customer_rank_value = data.get("customer_rank")
 
-        if request.user.is_staff and customer_rank_value:
+        if request.user.is_employee and customer_rank_value:
             try:
                 customer.update_rank(customer_rank_value)
                 customer.refresh_from_db()

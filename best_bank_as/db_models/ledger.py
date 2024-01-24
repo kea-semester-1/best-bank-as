@@ -8,13 +8,13 @@ from django.db import models
 from django.db.transaction import atomic
 
 from best_bank_as import enums
+from best_bank_as.db_models.bank import Bank
+from best_bank_as.db_models.core import base_model
+from best_bank_as.db_models.transaction import Transaction
 from best_bank_as.enums import AccountStatus
-from best_bank_as.models.bank import Bank
-from best_bank_as.models.core import base_model
-from best_bank_as.models.transaction import Transaction
 
 if TYPE_CHECKING:
-    from best_bank_as.models.account import Account
+    from best_bank_as.db_models.account import Account
 
 
 class Ledger(base_model.BaseModel):

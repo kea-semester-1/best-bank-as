@@ -6,6 +6,7 @@ from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, QueryDi
 from django.shortcuts import render
 
 from best_bank_as import constants
+from best_bank_as.db_models.customer import Customer
 
 
 class NotFoundMiddleware:
@@ -56,15 +57,15 @@ class SessionTimeoutMiddleware:
         if not request.user.is_authenticated:
             return response
 
-        current_time = datetime.now()
         last_activity = request.session.get("last_activity", None)
-
-        request.session["last_activity"] = current_time.strftime(
-            constants.DATETIME_FORMAT
-        )
 
         if not last_activity:
             return response
+
+        current_time = datetime.now()
+        request.session["last_activity"] = current_time.strftime(
+            constants.DATETIME_FORMAT
+        )
 
         dt = current_time - datetime.strptime(last_activity, constants.DATETIME_FORMAT)
         session_expired = dt.seconds > constants.SESSION_TIMEOUT_SECONDS
@@ -74,3 +75,31 @@ class SessionTimeoutMiddleware:
             logout(request)
 
         return response
+
+
+class RejectedCustomerGuardMiddleware:
+    """Middleware for rejecting customers."""
+
+    def __init__(self, get_response: HttpResponse):  # type : ignore
+        """Init method for rejected customer guard middleware."""
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        """Call method for rejected customer guard middleware."""
+        response = self.get_response(request)
+        if not request.user.is_authenticated:
+            return response
+
+        if not hasattr(request.user, "customer"):
+            return response
+
+        customer: Customer = request.user.customer
+
+        if customer.is_rejected:
+            return HttpResponseNotFound(
+                render(
+                    request,
+                    "best_bank_as/error_pages/error_page.html",
+                    context={"error": "You are rejected"},
+                )
+            )

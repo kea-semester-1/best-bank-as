@@ -5,7 +5,7 @@
             <li><a href="/">Home</a></li>
             {% if user.is_authenticated %}
                 <li><a href="/accounts/logout">Logout</a></li>
-                {% if not user.is_staff %}
+                {% if not user.is_employee %}
                     <li><a href="{% url 'best_bank_as:profile' %}">My Page</a></li>
                     <li><a href="{% url 'best_bank_as:loan_application_list' %}">Apply for Loan</a></li>
                 {% else %}
