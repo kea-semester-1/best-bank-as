@@ -102,7 +102,7 @@ class Command(BaseCommand):
                 reg_number="6969",
                 bank_name="Martin Bank",
                 branch_name="Marin branch",
-                url="api_url",
+                url="https://www.my-domain.dk",
             )
 
             Bank.objects.create(
