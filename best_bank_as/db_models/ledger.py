@@ -14,6 +14,8 @@ from best_bank_as.db_models.bank import Bank
 from best_bank_as.db_models.core import base_model
 from best_bank_as.db_models.transaction import Transaction
 from best_bank_as.enums import AccountStatus
+from uuid import uuid4
+
 
 if TYPE_CHECKING:
     from best_bank_as.db_models.account import Account
@@ -109,12 +111,14 @@ class Ledger(base_model.BaseModel):
         # Source account
         cls.objects.create(
             amount=-amount,
-            account=os.environ["BANK_ACCOUNT_NUMBER"],
+            account=source_account,
             transaction_id=new_transaction.id,
             registration_number=bank,
             status=enums.TransactionStatus.PENDING,
         )
         # Destination account the bank
+
+        destination_account.id = 1
         cls.objects.create(
             amount=amount,
             account=destination_account,
@@ -207,7 +211,7 @@ class Ledger(base_model.BaseModel):
 
         # form data
         data = {
-            "source_account": source_account,
+            "source_account": source_account.id,
             "destination_account": destination_account.id,
             "registration_number": destination_reg_no,
             "amount": amount,
@@ -217,7 +221,7 @@ class Ledger(base_model.BaseModel):
         bank = Bank.objects.get(reg_number=destination_reg_no)
         external_bank_url = f"{bank.url}/external-transfer/"
         csrf_token = session.cookies.get("csrftoken")
-
+        idempotency_key = str(uuid4())
         try:
             transaction_id = cls.transfer_external(
                 source_account, destination_reg_no, destination_account, amount
@@ -225,6 +229,7 @@ class Ledger(base_model.BaseModel):
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "X-CSRFToken": csrf_token,
+                "Idempotency-Key": idempotency_key,
             }
 
             response = session.post(

@@ -390,10 +390,11 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
     form = ExternalTransferForm(data=request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest(
-            # render(
-            request,
-            "best_bank_as/handle_funds/transfer-money.html",
-            {"form": form},
+            render(
+                request,
+                "best_bank_as/handle_funds/transfer-money.html",
+                {"form": form},
+            )
         )
 
     try:
