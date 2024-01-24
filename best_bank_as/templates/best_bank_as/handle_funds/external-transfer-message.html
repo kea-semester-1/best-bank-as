@@ -1,0 +1,16 @@
+{% extends "best_bank_as/base.html" %}
+
+{% block content %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div>
+                {% if message.tags %} {{ message.tags }} {% endif %}
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% else %}
+        <h1>Access for this page denied.</h1>
+    {% endif %}
+
+{% endblock %}

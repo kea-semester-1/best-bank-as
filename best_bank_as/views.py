@@ -3,7 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.db.models import Q, ObjectDoesNotExist
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseBadRequest,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.crypto import get_random_string
 
@@ -30,6 +35,7 @@ from best_bank_as.models.customer import Customer
 from best_bank_as.models.ledger import Ledger
 from best_bank_as.models.loan_application import LoanApplication
 from project import settings
+import os
 
 status_list = AccountStatus.name_value_pairs()
 rank_list = CustomerRank.name_value_pairs()
@@ -354,17 +360,17 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     destination_account = form.cleaned_data["destination_account"]
     registration_number = form.cleaned_data["registration_number"]
     amount = form.cleaned_data["amount"]
+    destination_account_instance = Account.objects.get(pk=destination_account)
 
-    if registration_number != "6666":
+    if registration_number != os.environ["BANK_REGISTRATION_NUMBER"]:
         Ledger.enqueue_external_transfer(
             source_account=source_account,
-            destination_account=destination_account,
+            destination_account=destination_account_instance,
             amount=amount,
             registration_number=registration_number,
         )
         messages.success(request, "External transfer initiated successfully.")
     else:
-        destination_account_instance = Account.objects.get(pk=destination_account)
         Ledger.transfer(
             source_account=source_account,
             destination_account=destination_account_instance,
@@ -378,34 +384,43 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
 @login_required
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
+
     if request.method != "POST":
-        return JsonResponse({"message": "Method not allowed"}, status=405)
+        messages.error(request, "Method not allowed")
+        return HttpResponseBadRequest(
+            render(request, "best_bank_as/handle_funds/external-transfer-message.html")
+        )
 
     form = ExternalTransferForm(data=request.POST)
     if not form.is_valid():
-        return JsonResponse({"errors": form.errors}, status=400)
+        return HttpResponseBadRequest(
+            render(
+                request, "best_bank_as/handle_funds/transfer-money.html", {"form": form}
+            )
+        )
+    try:
+        source_account_id = os.environ["BANK_ACCOUNT_NUMBER"]
+        destination_account_id = form.cleaned_data["destination_account"]
+        amount = form.cleaned_data["amount"]
 
-    # Extract validated data
-    source_account_id = 1
-    destination_account_id = form.cleaned_data["destination_account"]
-    amount = form.cleaned_data["amount"]
+        source_account = Account.objects.get(pk=source_account_id)
+        destination_account = Account.objects.get(pk=destination_account_id)
 
-    source_account = Account.objects.get(pk=source_account_id)
-    destination_account = Account.objects.get(pk=source_account_id)
+        Ledger.transfer(
+            source_account=source_account,
+            destination_account=destination_account,
+            amount=amount,
+        )
 
-    # Validate and process the accounts
-
-    destination_account = Account.objects.get(pk=destination_account_id)
-
-    # Assuming Ledger.transfer is the method to transfer funds internally
-
-    # Perform the transfer logic
-    Ledger.transfer(
-        source_account=source_account,  # Assuming this is an ID or external reference
-        destination_account=destination_account,
-        amount=amount,
-    )
-    return JsonResponse({"message": "Transfer completed successfully."}, status=200)
+        messages.success(request, "Transfer completed successfully.")
+        return render(
+            request, "best_bank_as/handle_funds/external-transfer-message.html"
+        )
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return HttpResponseBadRequest(
+            render(request, "best_bank_as/handle_funds/external-transfer-message.html")
+        )
 
 
 @login_required
