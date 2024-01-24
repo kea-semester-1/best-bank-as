@@ -106,10 +106,11 @@ class Ledger(base_model.BaseModel):
 
         new_transaction = Transaction.objects.create()
 
+        source_account.id = 1
         # Source account
         cls.objects.create(
             amount=-amount,
-            account=os.environ["BANK_ACCOUNT_NUMBER"],
+            account=source_account,
             transaction_id=new_transaction.id,
             registration_number=bank,
             status=enums.TransactionStatus.PENDING,
@@ -207,7 +208,7 @@ class Ledger(base_model.BaseModel):
 
         # form data
         data = {
-            "source_account": source_account,
+            "source_account": source_account.id,
             "destination_account": destination_account.id,
             "registration_number": destination_reg_no,
             "amount": amount,
