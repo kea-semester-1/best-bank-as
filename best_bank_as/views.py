@@ -388,36 +388,30 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
 
     form = ExternalTransferForm(data=request.POST)
     if not form.is_valid():
+        print(form.errors)
         return HttpResponseBadRequest(
-            # render(
-            request,
-            "best_bank_as/handle_funds/transfer-money.html",
-            {"form": form},
+            render(
+                request,
+                "best_bank_as/handle_funds/transfer-money.html",
+                {"form": form},
+            )
         )
 
-    try:
-        source_account_id = os.environ["BANK_ACCOUNT_NUMBER"]
-        destination_account_id = form.cleaned_data["destination_account"]
-        amount = form.cleaned_data["amount"]
+    source_account_id = os.environ["BANK_ACCOUNT_NUMBER"]
+    destination_account_id = form.cleaned_data["destination_account"]
+    amount = form.cleaned_data["amount"]
 
-        source_account = Account.objects.get(pk=source_account_id)
-        destination_account = Account.objects.get(pk=destination_account_id)
+    source_account = Account.objects.get(pk=source_account_id)
+    destination_account = Account.objects.get(pk=destination_account_id)
 
-        Ledger.transfer(
-            source_account=source_account,
-            destination_account=destination_account,
-            amount=amount,
-        )
+    Ledger.transfer(
+        source_account=source_account,
+        destination_account=destination_account,
+        amount=amount,
+    )
 
-        messages.success(request, "Transfer completed successfully.")
-        return render(
-            request, "best_bank_as/handle_funds/external-transfer-message.html"
-        )
-    except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
-        return HttpResponseBadRequest(
-            render(request, "best_bank_as/handle_funds/external-transfer-message.html")
-        )
+    messages.success(request, "Transfer completed successfully.")
+    return render(request, "best_bank_as/handle_funds/external-transfer-message.html")
 
 
 @decorators.group_required("employee", "supervisor")
