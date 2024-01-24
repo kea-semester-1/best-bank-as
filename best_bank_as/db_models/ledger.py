@@ -175,8 +175,8 @@ class Ledger(base_model.BaseModel):
 
             # POST request with CSRF token and credentials
             credentials = {
-                "username": os.environ("USER_NAME"),
-                "password": os.environ("PASSWORD"),
+                "username": os.environ["USER_NAME"],
+                "password": os.environ["PASSWORD"],
                 "csrfmiddlewaretoken": csrf_token,
             }
 
