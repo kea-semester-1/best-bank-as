@@ -375,6 +375,7 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     return redirect("best_bank_as:index")
 
 
+@login_required
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
     if request.method != "POST":

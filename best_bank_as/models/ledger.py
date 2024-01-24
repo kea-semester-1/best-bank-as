@@ -109,6 +109,13 @@ class Ledger(base_model.BaseModel):
             registration_number=bank,
             status=enums.TransactionStatus.PENDING,
         )
+        destination_account = Account.objects.get(pk=1)
+        # Destination account the bank
+        cls.objects.create(
+            amount=amount,
+            account=destination_account,
+            transaction=new_transaction,
+        )
 
     @classmethod
     def enqueue_external_transfer(
