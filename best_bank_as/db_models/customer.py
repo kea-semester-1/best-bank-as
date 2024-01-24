@@ -1,22 +1,32 @@
 from typing import Any
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group
 from django.db import models
 from django.db.models import Q, QuerySet, Sum
 from django.db.transaction import atomic
 
 from best_bank_as import enums
-from best_bank_as.models.account import Account
-from best_bank_as.models.core.base_model import BaseModel
-from best_bank_as.models.ledger import Ledger
-from best_bank_as.models.loan import Loan
-from best_bank_as.models.loan_application import LoanApplication
+from best_bank_as.db_models.account import Account
+from best_bank_as.db_models.core.base_model import BaseModel
+from best_bank_as.db_models.ledger import Ledger
+from best_bank_as.db_models.loan import Loan
+from best_bank_as.db_models.loan_application import LoanApplication
+
+
+class CustomerManager(models.Manager):
+    """Manager for Customer."""
+
+    def create(self, **kwargs: Any) -> "Customer":
+        customer = super().create(**kwargs)
+        group = Group.objects.get(name="customer")
+        customer.user.groups.add(group)
+        return customer
 
 
 class Customer(BaseModel):
     """Model for customer."""
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField("CustomUser", on_delete=models.CASCADE)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     rank = models.IntegerField(
         choices=enums.CustomerRank.choices,
@@ -28,6 +38,8 @@ class Customer(BaseModel):
         default=1,
         editable=True,
     )
+
+    objects = CustomerManager()
 
     def get_accounts(self) -> QuerySet[Account]:
         """Retrieve all accounts for a give user."""
@@ -87,7 +99,6 @@ class Customer(BaseModel):
             account_status=enums.AccountStatus.ACTIVE,
         )
         loan = Loan.objects.create(
-            customer=self,
             loan_application=loan_application,
             loan_account=loan_account,
         )
@@ -112,6 +123,11 @@ class Customer(BaseModel):
     def loan_applications(self) -> list[tuple[LoanApplication, str]]:
         """Get all loan applications for the customer."""
         return LoanApplication.filter_fmt(customer_id=self.pk)
+
+    @property
+    def is_rejected(self) -> bool:
+        """Check if customer is rejected."""
+        return self.status == enums.CustomerStatus.REJECTED
 
     @classmethod
     def search(cls, query: str) -> QuerySet["Customer"]:

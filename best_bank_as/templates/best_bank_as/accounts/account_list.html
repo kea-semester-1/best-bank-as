@@ -1,8 +1,10 @@
+
+
 <h1>Accounts</h1>
 {% for account in accounts %}
     {% if account.get_account_status_display == "Active" %}
         <a href="#details">
-            <button hx-target="#details" hx-get="{% url 'best_bank_as:get_details' account.pk %}"
+            <button hx-target="#details" hx-get="{% url 'best_bank_as:account_details' account.pk %}"
                     style="width: 100%; cursor: pointer; text-align: left;">
                 <span>Account number: {{ account.account_number }}</span>
                 <hr>

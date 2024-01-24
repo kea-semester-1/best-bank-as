@@ -1,14 +1,16 @@
 from decimal import Decimal
 from typing import Any
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db.transaction import atomic
 
 from best_bank_as import enums
-from best_bank_as.models.account import Account
-from best_bank_as.models.customer import Customer
-from best_bank_as.models.ledger import Ledger
+from best_bank_as.db_models.account import Account
+from best_bank_as.db_models.customer import Customer
+from best_bank_as.db_models.ledger import Ledger
+
+User = get_user_model()
 
 
 class Command(BaseCommand):
@@ -36,7 +38,8 @@ class Command(BaseCommand):
         customer3.save()
 
         account1 = Account.objects.create(
-            customer=customer1, account_status=enums.AccountStatus.ACTIVE
+            customer=customer1,
+            account_status=enums.AccountStatus.ACTIVE,
         )
         account2 = Account.objects.create(
             customer=customer1, account_status=enums.AccountStatus.ACTIVE

@@ -6,31 +6,28 @@ app_name = "best_bank_as"
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("profile/<str:username>", views.profile_page, name="profile_page"),
-    path("accounts/", views.get_accounts_list, name="get_accounts_list"),
-    path(
-        "accounts/<int:pk>/", views.get_accounts_list, name="get_accounts_list_with_pk"
-    ),
-    path("accounts/details/<int:pk>", views.get_account_details, name="get_details"),
+    path("profile/", views.profile, name="profile"),
+    path("accounts/", views.account_list, name="account_list"),
+    path("accounts/<int:pk>/", views.account_details, name="account_details"),
     path(
         "staff/accounts/<int:pk>",
-        views.get_accounts_for_user,
-        name="get_accounts_for_user",
+        views.staff_account_list,
+        name="staff_account_list",
     ),
-    path("staff/<str:username>", views.staff_page, name="staff_page"),
-    path("staff/search/", views.search_customer, name="search_customer"),
+    path("staff/", views.staff_page, name="staff_page"),
+    path("staff/customers", views.staff_customer_list, name="staff_customer_list"),
     path(
-        "staff/approve/customers",
-        views.approve_customers_list,
-        name="approve_customers",
+        "staff/customers/approve",
+        views.customers_approve_list,
+        name="customers_approve_list",
     ),
     path(
-        "staff/approve/customers/<int:pk>",
-        views.approve_customers_details,
-        name="approve_customers_details",
+        "staff/customers/approve/<int:pk>",
+        views.customers_approve_details,
+        name="customers_approve_details",
     ),
     # TODO: Figure if register, should just be customer path
-    path("register/", views.customer_list, name="create_customer"),
+    path("customers/register/", views.customer_list, name="customer_register"),
     path("customers/", views.customer_list, name="customer"),
     path("customers/<int:pk>/", views.customer_details, name="customer"),
     # Loan applications
@@ -40,18 +37,18 @@ urlpatterns = [
         name="loan_application_list",
     ),
     path(
-        "loan-applications/details/<int:pk>",
+        "loan-applications/<int:pk>",
         views.loan_application_details,
         name="loan_application_details",
     ),
     path(
-        "staff/loan-applications/details/<int:pk>",
+        "staff/loan-applications/<int:pk>",
         views.staff_loan_application_details,
         name="staff_loan_application_details",
     ),
     path(
         "staff/loan-applications/",
-        views.staff_loan_applications_page,
+        views.staff_loan_applications_list,
         name="approve_loan_applications",
     ),
     # Transfers

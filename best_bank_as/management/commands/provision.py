@@ -1,16 +1,17 @@
 import secrets
 from typing import Any
 
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth.models import Group, Permission
 from django.core.management.base import BaseCommand
 from django.db.transaction import atomic
 
 from best_bank_as import enums
-from best_bank_as.models.account import Account
-from best_bank_as.models.bank import Bank
-from best_bank_as.models.customer import Customer
-from best_bank_as.models.ledger import Ledger
-from best_bank_as.models.transaction import Transaction
+from best_bank_as.db_models.account import Account
+from best_bank_as.db_models.bank import Bank
+from best_bank_as.db_models.customer import Customer
+from best_bank_as.db_models.ledger import Ledger
+from best_bank_as.db_models.transaction import Transaction
+from best_bank_as.models import CustomUser
 
 
 def create_groups() -> None:
@@ -111,7 +112,7 @@ class Command(BaseCommand):
                 url="https://www.what-lol.dk",
             )
 
-        bank = User.objects.create_user(
+        bank = CustomUser.objects.create_user(
             username="bank", email="", password=secrets.token_urlsafe(64)
         )
         bank.save()

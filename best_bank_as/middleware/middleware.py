@@ -26,6 +26,10 @@ class NotFoundMiddleware:
 
     def __call__(self, request: HttpRequest) -> HttpResponse:
         response = self.get_response(request)
+        if response is None:
+            return HttpResponseNotFound(
+                render(request, "best_bank_as/error_pages/404_not_found.html")
+            )
         if response.status_code == 404:
             return HttpResponseNotFound(
                 render(request, "best_bank_as/error_pages/404_not_found.html")
@@ -63,15 +67,15 @@ class SessionTimeoutMiddleware:
         if not request.user.is_authenticated:
             return response
 
-        current_time = datetime.now()
         last_activity = request.session.get("last_activity", None)
-
-        request.session["last_activity"] = current_time.strftime(
-            constants.DATETIME_FORMAT
-        )
 
         if not last_activity:
             return response
+
+        current_time = datetime.now()
+        request.session["last_activity"] = current_time.strftime(
+            constants.DATETIME_FORMAT
+        )
 
         dt = current_time - datetime.strptime(last_activity, constants.DATETIME_FORMAT)
         session_expired = dt.seconds > constants.SESSION_TIMEOUT_SECONDS

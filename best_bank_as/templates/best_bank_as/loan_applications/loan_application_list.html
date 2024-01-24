@@ -29,9 +29,12 @@
     {% else %}
     <a href="{% url 'best_bank_as:staff_loan_application_details' application.pk %}">
     {% endif %}
+        <article>
         <p>Status: {{ status }}</p>
         <p>Loan amount: {{ application.amount }}</p>
         <p>Reason: {{ application.reason }}</p>
+        <p>Customer: {{ application.customer.user.username }}</p>
+        </article>
     </a>
     {% endfor %}
 

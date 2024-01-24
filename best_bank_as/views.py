@@ -2,8 +2,6 @@ import os
 import uuid
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.db.models import Q
 from django.http import (
@@ -17,6 +15,10 @@ from django.urls import reverse
 from django.utils.crypto import get_random_string
 
 from best_bank_as import decorators
+from best_bank_as.db_models.account import Account
+from best_bank_as.db_models.customer import Customer
+from best_bank_as.db_models.ledger import Ledger
+from best_bank_as.db_models.loan_application import LoanApplication
 from best_bank_as.enums import (
     AccountStatus,
     ApplicationStatus,
@@ -34,10 +36,6 @@ from best_bank_as.forms.external_transfer_form import ExternalTransferForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
-from best_bank_as.models.account import Account
-from best_bank_as.models.customer import Customer
-from best_bank_as.models.ledger import Ledger
-from best_bank_as.models.loan_application import LoanApplication
 from project import settings
 
 status_list = AccountStatus.name_value_pairs()
@@ -49,28 +47,19 @@ def index(request: HttpRequest) -> HttpResponse:
     return render(request, "best_bank_as/index.html")
 
 
-# TODO: Is this the correct way to ensure user can only see his own page
-@login_required
-def profile_page(request: HttpRequest, username: str) -> HttpResponse:
+@decorators.group_required("customer")
+def profile(request: HttpRequest) -> HttpResponse:
     """View for a user's profile page."""
-    user = get_object_or_404(User, username=username)
 
-    customer = get_object_or_404(Customer, user=user)
-
-    if request.user != user:
-        return HttpResponseForbidden(
-            render(request, "best_bank_as/error_pages/error_page.html")
-        )
-
+    customer = get_object_or_404(Customer, user=request.user)
     context = {"customer": customer}
 
     return render(request, "best_bank_as/profile.html", context)
 
 
-@login_required
-def get_accounts_list(request: HttpRequest) -> HttpResponse:
+@decorators.group_required("customer", "employee", "supervisor")
+def account_list(request: HttpRequest) -> HttpResponse:
     """Retrieve all accounts for a given user."""
-
     if request.method == "GET":
         customer = get_object_or_404(Customer, user=request.user)
         accounts = customer.get_accounts()
@@ -83,7 +72,8 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = NewAccountRequestForm(request.POST)
         if form.is_valid():
-            request_status = request.POST.get("request_status")
+            request_status = request.POST.get("account_status")
+
             status = (
                 AccountStatus.ACTIVE
                 if request_status == AccountStatus.ACTIVE
@@ -121,14 +111,14 @@ def get_accounts_list(request: HttpRequest) -> HttpResponse:
     return render(request, "best_bank_as/accounts/account_list.html", context)
 
 
-@login_required
-def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:
+@decorators.group_required("customer", "employee", "supervisor")
+def account_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Retrieve information for a given account."""
     account = get_object_or_404(Account, pk=pk)
 
     context = {"account": account, "status_list": status_list}
 
-    if request.user != account.customer.user and not request.user.is_staff:
+    if request.user != account.customer.user and not request.user.is_employee:
         return HttpResponseForbidden(
             render(request, "best_bank_as/error_pages/error_page.html")
         )
@@ -139,7 +129,7 @@ def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:
 
         context = {"balance": balance, "transactions": transactions}
 
-    if request.method == "PUT" and request.user.is_staff:
+    if request.method == "PUT" and request.user.is_employee:
         data = request.PUT
         value = data.get("account_status")
         try:
@@ -155,26 +145,18 @@ def get_account_details(request: HttpRequest, pk: int) -> HttpResponse:
     return render(request, "best_bank_as/accounts/account_details.html", context)
 
 
-@login_required
-def staff_page(request: HttpRequest, username: str) -> HttpResponse:
+@decorators.group_required("employee", "supervisor")
+def staff_page(request: HttpRequest) -> HttpResponse:
     """View for a staff page."""
-    user = get_object_or_404(User, username=username)
+    context = {"user": request.user}
 
-    if request.user != user:
-        return HttpResponseForbidden(
-            render(request, "best_bank_as/error_pages/error_page.html")
-        )
-    context = {user: user}
-
-    return render(request, "best_bank_as/staff.html", context)
+    return render(request, "best_bank_as/search_customer.html", context)
 
 
-@login_required
-def search_customer(request: HttpRequest) -> HttpResponse:
+@decorators.group_required("employee", "supervisor")
+def staff_customer_list(request: HttpRequest) -> HttpResponse:
     """View for searching customers."""
     query = request.GET.get("query", "")
-    if not request.user.is_staff:
-        return HttpResponseForbidden()
 
     customers = (
         Customer.objects.filter(
@@ -195,7 +177,7 @@ def search_customer(request: HttpRequest) -> HttpResponse:
     }
     return render(
         request,
-        "best_bank_as/customers/customers_search.html",
+        "best_bank_as/customers/customers_detail.html",
         context,
     )
 
@@ -228,7 +210,7 @@ def loan_application_list(request: HttpRequest) -> HttpResponse:
             customer=customer,
         )
         application.save()
-        return redirect("best_bank_as:loan_application_list")
+        # return redirect("best_bank_as:loan_application_list")
 
     context = {
         "customer": customer,
@@ -249,7 +231,7 @@ def loan_application_list(request: HttpRequest) -> HttpResponse:
 
 
 @decorators.group_required("employee", "supervisor")
-def staff_loan_applications_page(request: HttpRequest) -> HttpResponse:
+def staff_loan_applications_list(request: HttpRequest) -> HttpResponse:
     """View for listing all loan applications."""
 
     status_filter = request.GET.get("status_filter")
@@ -284,7 +266,8 @@ def loan_application_details(request: HttpRequest, pk: int) -> HttpResponse:
             return HttpResponseForbidden("Already approved by supervisor")
 
         application.delete()
-        return redirect("best_bank_as:loan_application_list")
+        messages.success(request, "Loan application was successfully deleted.")
+        # return redirect("best_bank_as:loan_application_list")
 
     context = {
         "is_customer": True,
@@ -307,23 +290,33 @@ def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpRespons
 
     if request.method == "DELETE":
         application.reject()
-        return redirect("approve_loan_applications")
+        return
 
     user = request.user
 
     if request.method == "PUT":
         is_employee = not user.groups.filter(name="supervisor").exists()
+        is_supervisor = not is_employee
+
+        print(is_employee, is_supervisor)
+
+        if application.employee_approved and application.supervisor_approved:
+            return HttpResponseForbidden("Already approved by both")
 
         if is_employee and application.employee_approved:
             return HttpResponseForbidden("Already approved by employee")
 
+        if is_supervisor and application.supervisor_approved:
+            return HttpResponseForbidden("Already approved by supervisor")
+
+        print("HERE")
         if is_employee:
             application.employee_approve(user)
         else:
             application.supervisor_approve(user)
             customer: Customer = application.customer
             customer.create_loan(application)
-        return redirect("approve_loan_applications")
+        return
 
     context = {
         "loan_application": application,
@@ -337,7 +330,7 @@ def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpRespons
     )
 
 
-@login_required()
+@decorators.group_required("customer")
 def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
     """View to transfer money from account to account."""
     idempotency_key = str(uuid.uuid4())
@@ -426,14 +419,11 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
         )
 
 
-@login_required
-def get_accounts_for_user(
+@decorators.group_required("employee", "supervisor")
+def staff_account_list(
     request: HttpRequest, pk: int
 ) -> HttpResponse:  # TODO: FIX LOGIC
     """Retrieve all accounts for a given user."""
-
-    if not request.user.is_staff:
-        return HttpResponseForbidden()
 
     customer = get_object_or_404(Customer, user=pk)
 
@@ -444,8 +434,8 @@ def get_accounts_for_user(
     return render(request, "best_bank_as/accounts/account_list.html", context)
 
 
-@decorators.group_required("employee")
-def approve_customers_list(request: HttpRequest) -> HttpResponse:
+@decorators.group_required("employee", "supervisor")
+def customers_approve_list(request: HttpRequest) -> HttpResponse:
     """Get all pending new customers."""
     customers = Customer.get_pending()
     return render(
@@ -455,7 +445,8 @@ def approve_customers_list(request: HttpRequest) -> HttpResponse:
     )
 
 
-def approve_customers_details(request: HttpRequest, pk: int) -> HttpResponse:
+@decorators.group_required("employee", "supervisor")
+def customers_approve_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Update status on customer, from pending to: Approved or Rejected."""
     customer = get_object_or_404(Customer, pk=pk)
 
@@ -469,19 +460,19 @@ def approve_customers_details(request: HttpRequest, pk: int) -> HttpResponse:
 
     return render(
         request,
-        "best_bank_as/customers/customers_table.html",
+        "best_bank_as/customers/customers_approve_list.html",
         {"customers": customers},
     )
 
 
-@decorators.group_required("employee", "supervisor")
 def customer_list(request: HttpRequest) -> HttpResponse:
     """Create a new customer profile."""
+    is_employee = hasattr(request.user, "is_employee") and request.user.is_employee
     if request.method == "GET":
         user_form = UserCreationForm()
         customer_form = CustomerCreationForm()
 
-        if request.user.is_staff:
+        if is_employee:
             user_form = UserCreationByEmployeeForm()
             context = {"userForm": user_form, "customerForm": customer_form}
             return render(
@@ -489,7 +480,7 @@ def customer_list(request: HttpRequest) -> HttpResponse:
             )
 
     if request.method == "POST":
-        if request.user.is_staff:
+        if is_employee:
             user_form = UserCreationByEmployeeForm(request.POST)
             customer_form = CustomerCreationForm(request.POST)
 
@@ -505,15 +496,19 @@ def customer_list(request: HttpRequest) -> HttpResponse:
                 new_customer.status = CustomerStatus.APPROVED
                 new_customer.user = new_user
                 new_customer.save()
+                try:
+                    print(f"*** Sending email to {new_user.email} ***")
+                    send_mail(
+                        subject="Welcome to Best Bank AS",
+                        message=f"Your password is: '{random_password}' - "
+                        "Make sure to reset it as soon as possible.",
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[new_user.email],
+                    )
+                except Exception as e:
+                    print(f"*** Could not send email to {new_user.email} ***")
+                    print(e)
 
-                print(f"*** Sending email to {new_user.email} ***")
-                send_mail(
-                    subject="Welcome to Best Bank AS",
-                    message=f"Your password is: '{random_password}' - "
-                    "Make sure to reset it as soon as possible.",
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    recipient_list=[new_user.email],
-                )
         else:
             user_form = UserCreationForm(request.POST)
             customer_form = CustomerCreationForm(request.POST)
@@ -538,6 +533,7 @@ def customer_list(request: HttpRequest) -> HttpResponse:
     )
 
 
+@decorators.group_required("employee", "supervisor")
 def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
     """Detail view for customers."""
     customer = get_object_or_404(Customer, pk=pk)
@@ -548,7 +544,7 @@ def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
         data = request.PUT
         customer_rank_value = data.get("customer_rank")
 
-        if request.user.is_staff and customer_rank_value:
+        if request.user.is_employee and customer_rank_value:
             try:
                 customer.update_rank(customer_rank_value)
                 customer.refresh_from_db()

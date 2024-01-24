@@ -22,7 +22,7 @@
                 <tr>
 
                     <td>
-                        <a href="{% url 'best_bank_as:get_accounts_for_user' customer.user.pk %}">{{ customer.user.username }}</a>
+                        <a href="{% url 'best_bank_as:staff_account_list' customer.user.pk %}">{{ customer.user.username }}</a>
                     </td>
                     <td>{{ customer.user.first_name }}</td>
                     <td>{{ customer.user.last_name }}</td>
@@ -49,9 +49,9 @@
                 {% for account in customer.account_set.all %}
                     <tr>
                         <td>
-                            <a href="{% url 'best_bank_as:get_details' account.pk %}">{{ account.account_number }}</a>
+                            <a href="{% url 'best_bank_as:account_details' account.pk %}">{{ account.account_number }}</a>
                         </td>
-                        <td>{{ account.get_type_display }}</td>
+                        <td>{{ account.get_account_type_display }}</td>
                         <td>
                             {% include "best_bank_as/accounts/account_status_partial.html" %}
                         </td>
@@ -59,7 +59,7 @@
                 {% endfor %}
                 </tbody>
             </table>
-            <form action="{% url 'best_bank_as:get_accounts_list' %}" method="post">
+            <form action="{% url 'best_bank_as:account_list' %}" method="post">
                 <input hidden name="account_status" value="ACTIVE" type="text">
                 <input hidden name="customer_pk" value="{{ customer.pk }}" type="text">
                 {% csrf_token %}
