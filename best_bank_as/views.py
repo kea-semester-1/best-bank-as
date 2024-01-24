@@ -377,7 +377,7 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     return response
 
 
-@login_required
+@decorators.group_required("customer")
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
 
@@ -390,10 +390,12 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
     form = ExternalTransferForm(data=request.POST)
     if not form.is_valid():
         return HttpResponseBadRequest(
-            render(
-                request, "best_bank_as/handle_funds/transfer-money.html", {"form": form}
-            )
+            # render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {"form": form},
         )
+
     try:
         source_account_id = os.environ["BANK_ACCOUNT_NUMBER"]
         destination_account_id = form.cleaned_data["destination_account"]
