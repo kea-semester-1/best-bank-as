@@ -38,6 +38,10 @@ from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
 from project import settings
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 status_list = AccountStatus.name_value_pairs()
 rank_list = CustomerRank.name_value_pairs()
 
@@ -388,7 +392,7 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
 
     form = ExternalTransferForm(data=request.POST)
     if not form.is_valid():
-        print(form.errors)
+        logger.error(f"TransferForm is not valid. Errors: {form.errors}")
         return HttpResponseBadRequest(
             render(
                 request,

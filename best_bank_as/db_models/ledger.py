@@ -15,6 +15,7 @@ from best_bank_as.db_models.core import base_model
 from best_bank_as.db_models.transaction import Transaction
 from best_bank_as.enums import AccountStatus
 
+
 if TYPE_CHECKING:
     from best_bank_as.db_models.account import Account
 
@@ -106,7 +107,6 @@ class Ledger(base_model.BaseModel):
 
         new_transaction = Transaction.objects.create()
 
-        source_account.id = 1
         # Source account
         cls.objects.create(
             amount=-amount,
@@ -116,6 +116,8 @@ class Ledger(base_model.BaseModel):
             status=enums.TransactionStatus.PENDING,
         )
         # Destination account the bank
+
+        destination_account.id = 1
         cls.objects.create(
             amount=amount,
             account=destination_account,
