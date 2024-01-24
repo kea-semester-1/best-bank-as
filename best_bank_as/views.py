@@ -377,7 +377,6 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     return response
 
 
-@decorators.group_required("customer")
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
 
