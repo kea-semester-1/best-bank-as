@@ -6,17 +6,17 @@
             {% if user.is_authenticated %}
                 <li><a href="/accounts/logout">Logout</a></li>
                 {% if not user.is_staff %}
-                    <li><a href="{% url 'best_bank_as:profile_page' username=user.username %}">My Page</a></li>
+                    <li><a href="{% url 'best_bank_as:profile' %}">My Page</a></li>
                     <li><a href="{% url 'best_bank_as:loan_application_list' %}">Apply for Loan</a></li>
                 {% else %}
                     <li>
                         <details role="list">
                             <summary aria-haspopup="listbox" role="link">Manage Customers</summary>
                             <ul role="listbox">
-                                <li><a href="{% url 'best_bank_as:staff_page' username=user.username %}">Edit
+                                <li><a href="{% url 'best_bank_as:staff_page' %}">Edit
                                     Customers</a></li>
                                 <li><a href="{% url 'best_bank_as:customer' %}">Create Customer</a></li>
-                                <li><a href="{% url 'best_bank_as:approve_customers' %}">Approve Customers</a></li>
+                                <li><a href="{% url 'best_bank_as:customers_approve_list' %}">Approve Customers</a></li>
                                 <li><a href="{% url 'best_bank_as:approve_loan_applications' %}">Approve
                                     Loans</a></li>
                             </ul>

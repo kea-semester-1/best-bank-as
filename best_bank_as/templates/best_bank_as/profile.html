@@ -6,14 +6,14 @@
 
         <div>
             <button
-            hx-get="{% url 'best_bank_as:get_accounts_list'%}"
+            hx-get="{% url 'best_bank_as:account_list'%}"
             hx-target="#target"
             >Accounts</button>
         </div>
         <div>
            <form
                    method="post"
-                   action="{% url 'best_bank_as:get_accounts_list' %}"
+                   action="{% url 'best_bank_as:account_list' %}"
                    hx-swap="outerHTML"
                    hx-target="#target"
                    >

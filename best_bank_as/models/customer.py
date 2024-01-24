@@ -87,7 +87,6 @@ class Customer(BaseModel):
             account_status=enums.AccountStatus.ACTIVE,
         )
         loan = Loan.objects.create(
-            customer=self,
             loan_application=loan_application,
             loan_account=loan_account,
         )

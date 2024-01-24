@@ -36,7 +36,8 @@ class Command(BaseCommand):
         customer3.save()
 
         account1 = Account.objects.create(
-            customer=customer1, account_status=enums.AccountStatus.ACTIVE
+            customer=customer1,
+            account_status=enums.AccountStatus.ACTIVE,
         )
         account2 = Account.objects.create(
             customer=customer1, account_status=enums.AccountStatus.ACTIVE

@@ -12,7 +12,7 @@ class BaseEnum(IntegerChoices):
     @classmethod
     def name_value_pairs(cls) -> list[tuple[str, int]]:
         """Get name value pairs."""
-        return [(name, value) for name, value in cls.choices]
+        return [(choice.name, choice.value) for choice in cls]
 
 
 class ApplicationStatus(BaseEnum):
