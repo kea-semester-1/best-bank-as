@@ -389,6 +389,9 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
     destination_account_id = form.cleaned_data["destination_account"]
     amount = form.cleaned_data["amount"]
 
+    source_account = Account.objects.get(pk=source_account_id)
+    destination_account = Account.objects.get(pk=source_account_id)
+
     # Validate and process the accounts
 
     destination_account = Account.objects.get(pk=destination_account_id)
@@ -397,7 +400,7 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
 
     # Perform the transfer logic
     Ledger.transfer(
-        source_account=source_account_id,  # Assuming this is an ID or external reference
+        source_account=source_account,  # Assuming this is an ID or external reference
         destination_account=destination_account,
         amount=amount,
     )
