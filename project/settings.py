@@ -72,7 +72,7 @@ MIDDLEWARE = [
     "best_bank_as.middleware.middleware.RequestMethodDictionaryMiddleware",
     "best_bank_as.middleware.middleware.SessionTimeoutMiddleware",
     "best_bank_as.middleware.middleware.IdempotencyMiddleware",
-    # "best_bank_as.middleware.middleware.RejectedCustomerGuardMiddleware",
+    "best_bank_as.middleware.middleware.RejectedCustomerGuardMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"

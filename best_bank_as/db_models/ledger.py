@@ -152,9 +152,9 @@ class Ledger(base_model.BaseModel):
         """Login and get session, we also add retry strategy."""
         with requests.Session() as session:
             retries = Retry(
-                total=5,  # Total number of retries
-                backoff_factor=1,  # Time factor for sleep time between attempts
-                status_forcelist=[500, 502, 503, 504],  # HTTP status codes to retry on
+                total=5,
+                backoff_factor=1,
+                status_forcelist=[500, 502, 503, 504],
             )
             session = requests.Session()
             adapter = HTTPAdapter(max_retries=retries)
