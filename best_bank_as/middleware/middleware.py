@@ -2,7 +2,14 @@ from collections.abc import Callable
 from datetime import datetime
 
 from django.contrib.auth import logout
-from django.http import HttpRequest, HttpResponse, HttpResponseNotFound, QueryDict
+from django.core.cache import cache
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseNotFound,
+    QueryDict,
+)
 from django.shortcuts import render
 
 from best_bank_as import constants
@@ -73,4 +80,42 @@ class SessionTimeoutMiddleware:
             print("********** SESSION EXPIRED **********")
             logout(request)
 
+        return response
+
+
+class IdempotencyMiddleware:
+    """Middleware for idempotent behavior."""
+
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]):
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        if request.method == "POST" and request.path in [
+            "/external-transfer/",
+            "/transfer/",
+        ]:
+            idempotency_key = request.headers.get("Idempotency-Key")
+
+            if not idempotency_key:
+                # Render the error page for missing idempotency key
+                response_content = render(
+                    request, "best_bank_as/error_pages/idempotency_key_missing.html"
+                ).content
+                return HttpResponseBadRequest(
+                    response_content, content_type="text/html"
+                )
+
+            if cache.get(idempotency_key):
+                # Render the error page for request already processed
+                response_content = render(
+                    request, "best_bank_as/error_pages/request_already_processed.html"
+                ).content
+                print(response_content)
+                return HttpResponseBadRequest(
+                    response_content, content_type="text/html"
+                )
+
+            cache.set(idempotency_key, "processed", 86400)  # 24 hours
+
+        response = self.get_response(request)
         return response

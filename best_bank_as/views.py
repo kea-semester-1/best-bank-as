@@ -1,15 +1,19 @@
+import os
+import uuid
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
-from django.db.models import Q, ObjectDoesNotExist
+from django.db.models import Q
 from django.http import (
     HttpRequest,
     HttpResponse,
-    HttpResponseForbidden,
     HttpResponseBadRequest,
+    HttpResponseForbidden,
 )
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.crypto import get_random_string
 
 from best_bank_as import decorators
@@ -26,24 +30,18 @@ from best_bank_as.forms.customer_form import (
     UserCreationForm,
     UserUpdateForm,
 )
+from best_bank_as.forms.external_transfer_form import ExternalTransferForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
-from best_bank_as.forms.external_transfer_form import ExternalTransferForm
 from best_bank_as.models.account import Account
 from best_bank_as.models.customer import Customer
 from best_bank_as.models.ledger import Ledger
 from best_bank_as.models.loan_application import LoanApplication
 from project import settings
-import os
 
 status_list = AccountStatus.name_value_pairs()
 rank_list = CustomerRank.name_value_pairs()
-
-import logging
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -342,15 +340,18 @@ def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpRespons
 @login_required()
 def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
     """View to transfer money from account to account."""
+    idempotency_key = str(uuid.uuid4())
     if request.method != "POST":
         return render(
             request,
             "best_bank_as/handle_funds/transfer-money.html",
-            {"form": TransferForm(user=request.user)},
+            {
+                "form": TransferForm(user=request.user),
+                "idempotency_key": idempotency_key,
+            },
         )
     form = TransferForm(data=request.POST, user=request.user)
     if not form.is_valid():  # or throw exception
-        logger.error(f"TransferForm is not valid. Errors: {form.errors}")
         return render(
             request,
             "best_bank_as/handle_funds/transfer-money.html",
@@ -378,7 +379,9 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
         )
         messages.success(request, "Internal transfer completed successfully.")
 
-    return redirect("best_bank_as:index")
+    response = HttpResponse()
+    response["HX-Redirect"] = request.build_absolute_uri(reverse("best_bank_as:index"))
+    return response
 
 
 @login_required

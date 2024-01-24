@@ -1,3 +1,4 @@
+import os
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 
@@ -5,6 +6,8 @@ import django_rq
 import requests
 from django.db import models
 from django.db.transaction import atomic
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from best_bank_as import enums
 from best_bank_as.enums import AccountStatus
@@ -106,7 +109,7 @@ class Ledger(base_model.BaseModel):
         # Source account
         cls.objects.create(
             amount=-amount,
-            account=source_account,
+            account=os.environ["BANK_ACCOUNT_NUMBER"],
             transaction_id=new_transaction.id,
             registration_number=bank,
             status=enums.TransactionStatus.PENDING,
@@ -145,10 +148,22 @@ class Ledger(base_model.BaseModel):
         ledger.update(status=status)
 
     @classmethod
-    def login_and_get_session(cls) -> requests.Session:
+    def login_and_get_session(cls, reg_number: Any) -> requests.Session:
+        """Login and get session, we also add retry strategy."""
         with requests.Session() as session:
+            retries = Retry(
+                total=5,  # Total number of retries
+                backoff_factor=1,  # Time factor for sleep time between attempts
+                status_forcelist=[500, 502, 503, 504],  # HTTP status codes to retry on
+            )
+            session = requests.Session()
+            adapter = HTTPAdapter(max_retries=retries)
+            session.mount("http://", adapter)
+            session.mount("https://", adapter)
+
             # GET request to fetch CSRF token
-            login_url = "https://www.what-lol.dk/accounts/login/"
+            bank = Bank.objects.get(reg_number=reg_number)
+            login_url = f"{bank.url}/accounts/login/"
             initial_response = session.get(login_url)
             initial_response.raise_for_status()
 
@@ -188,6 +203,8 @@ class Ledger(base_model.BaseModel):
         destination_account: Any,
         amount: Decimal,
     ) -> None:
+        """Initiate the transfer to the external bank."""
+
         # form data
         data = {
             "source_account": source_account,
@@ -195,9 +212,10 @@ class Ledger(base_model.BaseModel):
             "registration_number": destination_reg_no,
             "amount": amount,
         }
-        session = cls.login_and_get_session()
+        session = cls.login_and_get_session(reg_number=destination_reg_no)
         # URL of the external bank's `transaction_list` view
-        external_bank_url = "https://www.what-lol.dk/external-transfer/"
+        bank = Bank.objects.get(reg_number=destination_reg_no)
+        external_bank_url = f"{bank.url}/external-transfer/"
         csrf_token = session.cookies.get("csrftoken")
 
         try:
@@ -208,7 +226,13 @@ class Ledger(base_model.BaseModel):
                 "Content-Type": "application/x-www-form-urlencoded",
                 "X-CSRFToken": csrf_token,
             }
-            response = session.post(external_bank_url, data=data, headers=headers)
+
+            response = session.post(
+                external_bank_url,
+                data=data,
+                headers=headers,
+            )
+
             response.raise_for_status()
 
             if response.status_code == 200:
