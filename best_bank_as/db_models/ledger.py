@@ -1,11 +1,13 @@
+import os
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
-from urllib.parse import urlencode
 
 import django_rq
 import requests
 from django.db import models
 from django.db.transaction import atomic
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from best_bank_as import enums
 from best_bank_as.db_models.bank import Bank
@@ -82,9 +84,12 @@ class Ledger(base_model.BaseModel):
         destination_reg_no: Any,
         destination_account: Any,
         amount: Decimal,
-    ) -> None:
-        if destination_account is None:
+    ) -> int:
+        if destination_reg_no is None:
             raise ValueError("Registration number must be input")
+
+        if destination_account is None:
+            raise ValueError("Destination account must be input")
 
         if amount <= 0:
             print(amount)
@@ -95,7 +100,7 @@ class Ledger(base_model.BaseModel):
             raise ValueError("Amount cannot be less than balance")
 
         try:
-            bank = Bank.objects.get(registration_number=destination_reg_no)
+            bank = Bank.objects.get(reg_number=destination_reg_no)
         except Bank.DoesNotExist as e:
             raise e
 
@@ -104,11 +109,18 @@ class Ledger(base_model.BaseModel):
         # Source account
         cls.objects.create(
             amount=-amount,
-            account_number_id=source_account.id,
-            transaction_id=new_transaction,
+            account=os.environ["BANK_ACCOUNT_NUMBER"],
+            transaction_id=new_transaction.id,
             registration_number=bank,
             status=enums.TransactionStatus.PENDING,
         )
+        # Destination account the bank
+        cls.objects.create(
+            amount=amount,
+            account=destination_account,
+            transaction=new_transaction,
+        )
+        return new_transaction.id
 
     @classmethod
     def enqueue_external_transfer(
@@ -136,27 +148,38 @@ class Ledger(base_model.BaseModel):
         ledger.update(status=status)
 
     @classmethod
-    def login_and_get_session(cls) -> requests.Session:
+    def login_and_get_session(cls, reg_number: Any) -> requests.Session:
+        """Login and get session, we also add retry strategy."""
         with requests.Session() as session:
+            retries = Retry(
+                total=5,
+                backoff_factor=1,
+                status_forcelist=[500, 502, 503, 504],
+            )
+            session = requests.Session()
+            adapter = HTTPAdapter(max_retries=retries)
+            session.mount("http://", adapter)
+            session.mount("https://", adapter)
+
             # GET request to fetch CSRF token
-            login_url = "https://www.what-lol.dk/accounts/login/"
+            bank = Bank.objects.get(reg_number=reg_number)
+            login_url = f"{bank.url}/accounts/login/"
             initial_response = session.get(login_url)
             initial_response.raise_for_status()
 
             # Extract CSRF token from cookies
             csrf_token = session.cookies.get("csrftoken")
-            print("token!!!!!!!!!!!!!!!", csrf_token)
-            print("Cookies after GET request:", session.cookies.get_dict())
 
             if not csrf_token:
                 raise ValueError("CSRF token not found in initial response")
 
             # POST request with CSRF token and credentials
             credentials = {
-                "username": "Mo",
-                "password": "123",
+                "username": os.environ["USER_NAME"],
+                "password": os.environ["PASSWORD"],
                 "csrfmiddlewaretoken": csrf_token,
             }
+
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Referer": login_url,  # Adding the Referer header
@@ -166,7 +189,6 @@ class Ledger(base_model.BaseModel):
             login_response = session.post(
                 url=login_url, data=credentials, headers=headers, allow_redirects=False
             )
-            print(login_response.__dict__)
 
             login_response.raise_for_status()
 
@@ -181,33 +203,43 @@ class Ledger(base_model.BaseModel):
         destination_account: Any,
         amount: Decimal,
     ) -> None:
+        """Initiate the transfer to the external bank."""
+
         # form data
         data = {
             "source_account": source_account,
-            "destination_account": destination_account,
-            "registration_number": "6666",
+            "destination_account": destination_account.id,
+            "registration_number": destination_reg_no,
             "amount": amount,
         }
-        session = cls.login_and_get_session()
+        session = cls.login_and_get_session(reg_number=destination_reg_no)
         # URL of the external bank's `transaction_list` view
-        external_bank_url = "https://www.what-lol.dk/transfer/"
+        bank = Bank.objects.get(reg_number=destination_reg_no)
+        external_bank_url = f"{bank.url}/external-transfer/"
         csrf_token = session.cookies.get("csrftoken")
+
         try:
+            transaction_id = cls.transfer_external(
+                source_account, destination_reg_no, destination_account, amount
+            )
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "X-CSRFToken": csrf_token,
             }
+
             response = session.post(
-                external_bank_url, data=urlencode(data), headers=headers
+                external_bank_url,
+                data=data,
+                headers=headers,
             )
+
             response.raise_for_status()
 
-            # if response.status_code == 200:
-            #     cls.finalize_external_transfer(
-            #         source_account,
-            #         destination_account,
-            #         amount,
-            #     )
+            if response.status_code == 200:
+                cls.finalize_external_transfer(
+                    transaction_id=transaction_id,
+                    status=enums.TransactionStatus.PROCESSED,
+                )
         except requests.RequestException as e:
             print(e)
 

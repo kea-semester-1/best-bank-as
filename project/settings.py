@@ -42,7 +42,7 @@ if RTE is RuntimeEnvironment.dev:
     DEBUG = True
     ALLOWED_HOSTS = ["app", "localhost", "127.0.0.1"]
 else:
-    DEBUG = False
+    DEBUG = True
     ALLOWED_HOSTS = ["what-lol.dk", "www.what-lol.dk"]
 
 # Application definition
@@ -71,7 +71,7 @@ MIDDLEWARE = [
     "best_bank_as.middleware.middleware.NotFoundMiddleware",
     "best_bank_as.middleware.middleware.RequestMethodDictionaryMiddleware",
     "best_bank_as.middleware.middleware.SessionTimeoutMiddleware",
-    # "best_bank_as.middleware.middleware.RejectedCustomerGuardMiddleware",
+    "best_bank_as.middleware.middleware.IdempotencyMiddleware",
 ]
 
 ROOT_URLCONF = "project.urls"

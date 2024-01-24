@@ -1,8 +1,17 @@
+import os
+import uuid
+
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+)
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.crypto import get_random_string
 
 from best_bank_as import decorators
@@ -23,6 +32,7 @@ from best_bank_as.forms.customer_form import (
     UserCreationForm,
     UserUpdateForm,
 )
+from best_bank_as.forms.external_transfer_form import ExternalTransferForm
 from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
@@ -323,11 +333,15 @@ def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpRespons
 @decorators.group_required("customer")
 def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
     """View to transfer money from account to account."""
+    idempotency_key = str(uuid.uuid4())
     if request.method != "POST":
         return render(
             request,
             "best_bank_as/handle_funds/transfer-money.html",
-            {"form": TransferForm(user=request.user)},
+            {
+                "form": TransferForm(user=request.user),
+                "idempotency_key": idempotency_key,
+            },
         )
     form = TransferForm(data=request.POST, user=request.user)
     if not form.is_valid():  # or throw exception
@@ -340,17 +354,17 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     destination_account = form.cleaned_data["destination_account"]
     registration_number = form.cleaned_data["registration_number"]
     amount = form.cleaned_data["amount"]
+    destination_account_instance = Account.objects.get(pk=destination_account)
 
-    if registration_number != "6666":
+    if registration_number != os.environ["BANK_REGISTRATION_NUMBER"]:
         Ledger.enqueue_external_transfer(
             source_account=source_account,
-            destination_account=destination_account,
+            destination_account=destination_account_instance,
             amount=amount,
             registration_number=registration_number,
         )
         messages.success(request, "External transfer initiated successfully.")
     else:
-        destination_account_instance = Account.objects.get(pk=destination_account)
         Ledger.transfer(
             source_account=source_account,
             destination_account=destination_account_instance,
@@ -358,7 +372,53 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
         )
         messages.success(request, "Internal transfer completed successfully.")
 
-    return redirect("best_bank_as:index")
+    response = HttpResponse()
+    response["HX-Redirect"] = request.build_absolute_uri(reverse("best_bank_as:index"))
+    return response
+
+
+@decorators.group_required("customer")
+def external_transfer(request: HttpRequest) -> HttpResponse:
+    """View to handle incoming external money transfers."""
+
+    if request.method != "POST":
+        messages.error(request, "Method not allowed")
+        return HttpResponseBadRequest(
+            render(request, "best_bank_as/handle_funds/external-transfer-message.html")
+        )
+
+    form = ExternalTransferForm(data=request.POST)
+    if not form.is_valid():
+        return HttpResponseBadRequest(
+            # render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {"form": form},
+        )
+
+    try:
+        source_account_id = os.environ["BANK_ACCOUNT_NUMBER"]
+        destination_account_id = form.cleaned_data["destination_account"]
+        amount = form.cleaned_data["amount"]
+
+        source_account = Account.objects.get(pk=source_account_id)
+        destination_account = Account.objects.get(pk=destination_account_id)
+
+        Ledger.transfer(
+            source_account=source_account,
+            destination_account=destination_account,
+            amount=amount,
+        )
+
+        messages.success(request, "Transfer completed successfully.")
+        return render(
+            request, "best_bank_as/handle_funds/external-transfer-message.html"
+        )
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return HttpResponseBadRequest(
+            render(request, "best_bank_as/handle_funds/external-transfer-message.html")
+        )
 
 
 @decorators.group_required("employee", "supervisor")

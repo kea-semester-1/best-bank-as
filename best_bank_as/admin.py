@@ -20,5 +20,4 @@ admin.site.register(Ledger)
 admin.site.register(LoanApplication)
 admin.site.register(Loan)
 admin.site.register(Bank)
-
 admin.site.register(CustomUser, UserAdmin)

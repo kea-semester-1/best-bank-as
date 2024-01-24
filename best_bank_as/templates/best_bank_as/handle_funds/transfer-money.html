@@ -1,6 +1,8 @@
 <h1>Transfer</h1>
 
-<form method="post" action="{% url "best_bank_as:transfer_money" %}">
+
+<form hx-post="{% url "best_bank_as:transfer_money" %}"
+      hx-headers='{"Idempotency-Key": "{{ idempotency_key }}"}'>
     {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="Transfer">

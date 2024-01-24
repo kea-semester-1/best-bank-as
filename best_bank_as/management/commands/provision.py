@@ -96,7 +96,7 @@ class Command(BaseCommand):
                 reg_number="6666",
                 bank_name="Malthe Bank",
                 branch_name="Malthe branch",
-                url="api_url",
+                url="https://malthegram.dk",
             )
             Bank.objects.create(
                 reg_number="6969",
@@ -109,7 +109,7 @@ class Command(BaseCommand):
                 reg_number="0420",
                 bank_name="Mo Bank",
                 branch_name="Mo branch",
-                url="api_url",
+                url="https://www.what-lol.dk",
             )
 
         bank = CustomUser.objects.create_user(
