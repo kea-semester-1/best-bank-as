@@ -154,7 +154,9 @@ class Ledger(base_model.BaseModel):
     @classmethod
     def login_and_get_token(cls, reg_number: Any) -> str:
         """Login and get token."""
-        login_url = f"{cls.get_bank_url(reg_number)}/api-token-auth/"
+
+        bank = Bank.objects.get(reg_number=reg_number)
+        login_url = f"{bank.url}/api-token-auth/"
         credentials = {
             "username": os.environ["USER_NAME"],
             "password": os.environ["PASSWORD"],
