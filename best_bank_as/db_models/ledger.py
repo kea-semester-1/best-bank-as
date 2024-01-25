@@ -156,7 +156,7 @@ class Ledger(base_model.BaseModel):
         """Login and get token."""
 
         bank = Bank.objects.get(reg_number=reg_number)
-        login_url = f"{bank.url}/api-token-auth/"
+        login_url = f"{bank.url}/auth-token/"
         credentials = {
             "username": os.environ["USER_NAME"],
             "password": os.environ["PASSWORD"],
