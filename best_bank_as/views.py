@@ -340,11 +340,15 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     """View to transfer money from account to account."""
     idempotency_key = str(uuid.uuid4())
 
-    token_key = request.META.get("HTTP_AUTHORIZATION")
-
-    if not token_key or not Token.objects.filter(key=token_key.split()[1]).exists():
-        return HttpResponse(status=401, data={"message": "Unauthorized"})
-
+    if request.method != "POST":
+        return render(
+            request,
+            "best_bank_as/handle_funds/transfer-money.html",
+            {
+                "form": TransferForm(user=request.user),
+                "idempotency_key": idempotency_key,
+            },
+        )
     form = TransferForm(data=request.POST, user=request.user)
     if not form.is_valid():  # or throw exception
         return render(
@@ -383,11 +387,13 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
 
-    if request.method != "POST":
-        messages.error(request, "Method not allowed")
-        return HttpResponseBadRequest(
-            render(request, "best_bank_as/handle_funds/external-transfer-message.html")
-        )
+    idempotency_key = str(uuid.uuid4())
+
+    token_key = request.META.get("HTTP_AUTHORIZATION")
+
+    if not token_key or not Token.objects.filter(key=token_key.split()[1]).exists():
+        response_content = "<html><body><p>Unauthorized</p></body></html>"
+        return HttpResponse(response_content, status=401)
 
     form = ExternalTransferForm(data=request.POST)
     if not form.is_valid():
@@ -398,7 +404,6 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
                 {"form": form},
             )
         )
-
     try:
         source_account_id = os.environ["BANK_ACCOUNT_NUMBER"]
         destination_account_id = form.cleaned_data["destination_account"]
