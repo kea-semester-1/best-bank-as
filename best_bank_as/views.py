@@ -385,6 +385,7 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
 
 
 @csrf_exempt
+@decorators.group_required("customer")
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
 
