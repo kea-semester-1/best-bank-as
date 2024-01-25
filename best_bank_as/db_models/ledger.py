@@ -29,7 +29,7 @@ class Ledger(base_model.BaseModel):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.IntegerField(
         choices=enums.TransactionStatus.choices,
-        default=0,
+        default=1,
     )
     account = models.ForeignKey(
         "Account",
@@ -245,6 +245,13 @@ class Ledger(base_model.BaseModel):
                     transaction_id=transaction_id,
                     status=enums.TransactionStatus.PROCESSED,
                 )
+                return None
+
+            cls.finalize_external_transfer(
+                transaction_id=transaction_id,
+                status=enums.TransactionStatus.REJECTED,
+            )
+
         except requests.RequestException as e:
             print(e)
 
