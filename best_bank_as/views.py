@@ -387,9 +387,8 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
 
-    idempotency_key = str(uuid.uuid4())
-
     token_key = request.META.get("HTTP_AUTHORIZATION")
+    print(token_key)
 
     if not token_key or not Token.objects.filter(key=token_key.split()[1]).exists():
         response_content = "<html><body><p>Unauthorized</p></body></html>"

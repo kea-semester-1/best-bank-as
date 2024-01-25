@@ -163,6 +163,7 @@ class Ledger(base_model.BaseModel):
         }
         response = requests.post(login_url, data=credentials)
         response.raise_for_status()
+        print(response.json())
         return response.json()["token"]
 
     @classmethod
@@ -190,6 +191,7 @@ class Ledger(base_model.BaseModel):
         headers = {
             "Authorization": f"Token {token}",
             "Idempotency-Key": idempotency_key,
+            "content_type": "application/json",
         }
 
         try:
