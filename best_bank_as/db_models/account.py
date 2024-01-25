@@ -35,10 +35,14 @@ class Account(base_model.BaseModel):
     def get_balance(self) -> Decimal:
         """
         Retrieve the balance for the account.
+        Excludes the ledgerentries that have a status of rejected.
         """
-        balance = Ledger.objects.filter(account=self).aggregate(Sum("amount"))[
-            "amount__sum"
-        ]
+
+        balance = (
+            Ledger.objects.filter(account=self)
+            .exclude(status=enums.TransactionStatus.REJECTED)
+            .aggregate(Sum("amount"))["amount__sum"]
+        )
         return balance or Decimal(0)
 
     def get_transactions(self) -> list[dict[str, Any]]:
