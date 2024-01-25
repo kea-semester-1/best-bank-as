@@ -37,7 +37,7 @@ class Account(base_model.BaseModel):
         Retrieve the balance for the account.
         Excludes the ledgerentries that have a status of rejected.
         """
-        
+
         balance = (
             Ledger.objects.filter(account=self)
             .exclude(status=enums.TransactionStatus.REJECTED)
