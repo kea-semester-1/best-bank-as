@@ -117,7 +117,7 @@ class Customer(BaseModel):
     @property
     def can_loan(self) -> bool:
         """Check if customer can loan."""
-        return self.rank >= enums.CustomerRank.BLUE
+        return self.rank > enums.CustomerRank.BLUE
 
     @property
     def loan_applications(self) -> list[tuple[LoanApplication, str]]:
