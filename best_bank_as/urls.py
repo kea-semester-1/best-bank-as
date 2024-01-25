@@ -4,6 +4,7 @@ from best_bank_as import views
 
 app_name = "best_bank_as"
 
+
 urlpatterns = [
     path("", views.index, name="index"),
     path("profile/", views.profile, name="profile"),
@@ -54,4 +55,6 @@ urlpatterns = [
     # Transfers
     path("transfer/", views.transaction_list, name="transfer_money"),
     path("external-transfer/", views.external_transfer, name="external-transfer"),
+    # Auth
+    path("auth-token/", views.auth_token, name="api_token_auth"),
 ]

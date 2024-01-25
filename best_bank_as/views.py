@@ -37,6 +37,11 @@ from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
 from project import settings
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 
 status_list = AccountStatus.name_value_pairs()
 rank_list = CustomerRank.name_value_pairs()
@@ -334,15 +339,12 @@ def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpRespons
 def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
     """View to transfer money from account to account."""
     idempotency_key = str(uuid.uuid4())
-    if request.method != "POST":
-        return render(
-            request,
-            "best_bank_as/handle_funds/transfer-money.html",
-            {
-                "form": TransferForm(user=request.user),
-                "idempotency_key": idempotency_key,
-            },
-        )
+
+    token_key = request.META.get("HTTP_AUTHORIZATION")
+
+    if not token_key or not Token.objects.filter(key=token_key.split()[1]).exists():
+        return HttpResponse(status=401, data={"message": "Unauthorized"})
+
     form = TransferForm(data=request.POST, user=request.user)
     if not form.is_valid():  # or throw exception
         return render(
@@ -588,3 +590,16 @@ def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
         return render(
             request, "best_bank_as/customers/customer_active_status.html", context
         )
+
+
+@api_view(["POST"])
+def auth_token(request: HttpRequest) -> Response:
+    username = request.data.get("username")
+    password = request.data.get("password")
+    user = authenticate(username=username, password=password)
+
+    if user:
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({"token": token.key})
+
+    return Response(status=400, data={"message": "Invalid Credentials"})
