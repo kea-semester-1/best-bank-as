@@ -13,6 +13,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.crypto import get_random_string
+from django.views.decorators.csrf import csrf_exempt
 
 from best_bank_as import decorators
 from best_bank_as.db_models.account import Account
@@ -383,6 +384,7 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     return response
 
 
+@csrf_exempt
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
 
