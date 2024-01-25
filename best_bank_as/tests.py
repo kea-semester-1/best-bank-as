@@ -1,41 +1,34 @@
-from decimal import Decimal
 import uuid
+from decimal import Decimal
 
 from django.contrib.auth.models import Group
-from django.test import Client, TestCase
-from django.urls import reverse
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import Client, TestCase
 
 from best_bank_as.db_models.account import Account
 from best_bank_as.db_models.customer import Customer
 from best_bank_as.db_models.ledger import Ledger
 from best_bank_as.db_models.loan_application import LoanApplication
 from best_bank_as.enums import AccountStatus, AccountType, CustomerRank
-from best_bank_as.management.commands.provision import (
-    create_groups,
-    create_internal_bank_account,
-)
 from best_bank_as.models import CustomUser
 
 
 class CustomerTestCase(TestCase):
     """Test case for customer model."""
-    
+
     @classmethod
     def setUpTestData(cls) -> None:
-        call_command('provision')
-        call_command('demodata')
+        call_command("provision")
+        call_command("demodata")
 
         # Create users and assign groups
         cls.employee_user = CustomUser.objects.create_user(username="employee")
         cls.supervisor_user = CustomUser.objects.create_user(username="supervisor")
-        
+
         employee_group = Group.objects.get(name="employee")
         supervisor_group = Group.objects.get(name="supervisor")
         cls.employee_user.groups.add(employee_group)
         cls.supervisor_user.groups.add(supervisor_group)
-
 
         # Create a customer and accounts
         cls.user = CustomUser.objects.create_user(
@@ -94,8 +87,6 @@ class CustomerTestCase(TestCase):
         self.customer.create_loan(loan_application=loan_application)
         self.assertEqual(len(self.customer.get_accounts()), 3)
 
-
-
     def test_user_can_login_and_transfer(self) -> None:
         c = Client()
 
@@ -112,7 +103,7 @@ class CustomerTestCase(TestCase):
         self.assertTemplateUsed(response, "registration/login.html")
 
         # Go to profile
-        response = c.get(f"/profile/", follow=True)
+        response = c.get("/profile/", follow=True)
         assert response.status_code == 200
 
         # Transfer
@@ -130,5 +121,5 @@ class CustomerTestCase(TestCase):
             headers=headers,
             follow=True,
         )
-        
+
         assert response.status_code == 200

@@ -1,6 +1,7 @@
 import os
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any
+from uuid import uuid4
 
 import django_rq
 import requests
@@ -14,8 +15,6 @@ from best_bank_as.db_models.bank import Bank
 from best_bank_as.db_models.core import base_model
 from best_bank_as.db_models.transaction import Transaction
 from best_bank_as.enums import AccountStatus
-from uuid import uuid4
-
 
 if TYPE_CHECKING:
     from best_bank_as.db_models.account import Account
