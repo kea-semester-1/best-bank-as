@@ -1,18 +1,15 @@
+import uuid
 from decimal import Decimal
 
 from django.contrib.auth.models import Group
+from django.core.management import call_command
 from django.test import Client, TestCase
-from django.urls import reverse
 
 from best_bank_as.db_models.account import Account
 from best_bank_as.db_models.customer import Customer
 from best_bank_as.db_models.ledger import Ledger
 from best_bank_as.db_models.loan_application import LoanApplication
 from best_bank_as.enums import AccountStatus, AccountType, CustomerRank
-from best_bank_as.management.commands.provision import (
-    create_groups,
-    create_internal_bank_account,
-)
 from best_bank_as.models import CustomUser
 
 
@@ -21,13 +18,17 @@ class CustomerTestCase(TestCase):
 
     @classmethod
     def setUpTestData(cls) -> None:
-        create_groups()
+        call_command("provision")
+        call_command("demodata")
 
         # Create users and assign groups
         cls.employee_user = CustomUser.objects.create_user(username="employee")
         cls.supervisor_user = CustomUser.objects.create_user(username="supervisor")
-        Group.objects.get(name="employee").user_set.add(cls.employee_user)
-        Group.objects.get(name="supervisor").user_set.add(cls.supervisor_user)
+
+        employee_group = Group.objects.get(name="employee")
+        supervisor_group = Group.objects.get(name="supervisor")
+        cls.employee_user.groups.add(employee_group)
+        cls.supervisor_user.groups.add(supervisor_group)
 
         # Create a customer and accounts
         cls.user = CustomUser.objects.create_user(
@@ -46,8 +47,8 @@ class CustomerTestCase(TestCase):
         )
 
         # Create an internal bank account and transfer funds to the customer
-        bank = create_internal_bank_account()
-        Ledger.transfer(bank, cls.account1, Decimal(1000))
+        internal_account = Account.objects.get(account_type=AccountType.INTERNAL)
+        Ledger.transfer(internal_account, cls.account1, Decimal(1000))
 
     def test_customer_has_two_accounts(self) -> None:
         """Customers should have exactly two accounts."""
@@ -86,17 +87,6 @@ class CustomerTestCase(TestCase):
         self.customer.create_loan(loan_application=loan_application)
         self.assertEqual(len(self.customer.get_accounts()), 3)
 
-    def test_user_login_and_transfer(self) -> None:
-        """User should be able to log in and perform a transfer."""
-        c = Client()
-        response = c.post(
-            reverse("login"),
-            {"username": "testuser", "password": "test123"},
-            follow=True,
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "registration/login.html")
-
     def test_user_can_login_and_transfer(self) -> None:
         c = Client()
 
@@ -113,21 +103,23 @@ class CustomerTestCase(TestCase):
         self.assertTemplateUsed(response, "registration/login.html")
 
         # Go to profile
-        response = c.get(f"/profile/{self.user.username}", follow=True)
+        response = c.get("/profile/", follow=True)
         assert response.status_code == 200
 
         # Transfer
+        headers = {
+            "Idempotency-Key": str(uuid.uuid4()),
+        }
         response = c.post(
-            "transfer/",
+            "/transfer/",
             {
                 "source_account": self.account1,
                 "deination_account": self.account2,
+                "registration_number": "6666",
                 "amount": 100,
             },
+            headers=headers,
             follow=True,
         )
 
-        # self.account1.refresh_from_db()
-        # self.account2.refresh_from_db()
-
-        # elf.assertGreater(self.account2.get_balance(), 0)
+        assert response.status_code == 200
