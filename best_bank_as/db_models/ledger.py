@@ -152,52 +152,18 @@ class Ledger(base_model.BaseModel):
         ledger.update(status=status)
 
     @classmethod
-    def login_and_get_session(cls, reg_number: Any) -> requests.Session:
-        """Login and get session, we also add retry strategy."""
-        with requests.Session() as session:
-            retries = Retry(
-                total=5,
-                backoff_factor=1,
-                status_forcelist=[500, 502, 503, 504],
-            )
-            session = requests.Session()
-            adapter = HTTPAdapter(max_retries=retries)
-            session.mount("http://", adapter)
-            session.mount("https://", adapter)
+    def login_and_get_token(cls, reg_number: Any) -> str:
+        """Login and get token."""
 
-            # GET request to fetch CSRF token
-            bank = Bank.objects.get(reg_number=reg_number)
-            login_url = f"{bank.url}/accounts/login/"
-            initial_response = session.get(login_url)
-            initial_response.raise_for_status()
-
-            # Extract CSRF token from cookies
-            csrf_token = session.cookies.get("csrftoken")
-
-            if not csrf_token:
-                raise ValueError("CSRF token not found in initial response")
-
-            # POST request with CSRF token and credentials
-            credentials = {
-                "username": os.environ["USER_NAME"],
-                "password": os.environ["PASSWORD"],
-                "csrfmiddlewaretoken": csrf_token,
-            }
-
-            headers = {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Referer": login_url,  # Adding the Referer header
-                "X-CSRFToken": csrf_token,
-            }
-
-            login_response = session.post(
-                url=login_url, data=credentials, headers=headers, allow_redirects=False
-            )
-
-            login_response.raise_for_status()
-
-            # Return the session for subsequent authenticated requests
-            return session
+        bank = Bank.objects.get(reg_number=reg_number)
+        login_url = f"{bank.url}/auth-token/"
+        credentials = {
+            "username": os.environ["USER_NAME"],
+            "password": os.environ["PASSWORD"],
+        }
+        response = requests.post(login_url, data=credentials)
+        response.raise_for_status()
+        return response.json()["token"]
 
     @classmethod
     def initiate_external_transfer(
@@ -209,30 +175,30 @@ class Ledger(base_model.BaseModel):
     ) -> None:
         """Initiate the transfer to the external bank."""
 
-        # form data
         data = {
             "source_account": source_account.id,
             "destination_account": destination_account.id,
             "registration_number": destination_reg_no,
             "amount": amount,
         }
-        session = cls.login_and_get_session(reg_number=destination_reg_no)
-        # URL of the external bank's `transaction_list` view
+
+        token = cls.login_and_get_token(reg_number=destination_reg_no)
         bank = Bank.objects.get(reg_number=destination_reg_no)
         external_bank_url = f"{bank.url}/external-transfer/"
-        csrf_token = session.cookies.get("csrftoken")
         idempotency_key = str(uuid4())
+
+        headers = {
+            "Authorization": f"Token {token}",
+            "Idempotency-Key": idempotency_key,
+            "content_type": "application/json",
+        }
+
         try:
             transaction_id = cls.transfer_external(
                 source_account, destination_reg_no, destination_account, amount
             )
-            headers = {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "X-CSRFToken": csrf_token,
-                "Idempotency-Key": idempotency_key,
-            }
 
-            response = session.post(
+            response = requests.post(
                 external_bank_url,
                 data=data,
                 headers=headers,

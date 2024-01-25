@@ -13,6 +13,7 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.crypto import get_random_string
+from django.views.decorators.csrf import csrf_exempt
 
 from best_bank_as import decorators
 from best_bank_as.db_models.account import Account
@@ -37,6 +38,11 @@ from best_bank_as.forms.loan_application_form import LoanApplicationForm
 from best_bank_as.forms.request_new_account_form import NewAccountRequestForm
 from best_bank_as.forms.TransferForm import TransferForm
 from project import settings
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 
 status_list = AccountStatus.name_value_pairs()
 rank_list = CustomerRank.name_value_pairs()
@@ -334,6 +340,7 @@ def staff_loan_application_details(request: HttpRequest, pk: int) -> HttpRespons
 def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction naming
     """View to transfer money from account to account."""
     idempotency_key = str(uuid.uuid4())
+
     if request.method != "POST":
         return render(
             request,
@@ -377,15 +384,17 @@ def transaction_list(request: HttpRequest) -> HttpResponse:  # TODO: Transaction
     return response
 
 
+@csrf_exempt
 @decorators.group_required("customer")
 def external_transfer(request: HttpRequest) -> HttpResponse:
     """View to handle incoming external money transfers."""
 
-    if request.method != "POST":
-        messages.error(request, "Method not allowed")
-        return HttpResponseBadRequest(
-            render(request, "best_bank_as/handle_funds/external-transfer-message.html")
-        )
+    token_key = request.META.get("HTTP_AUTHORIZATION")
+    print(token_key)
+
+    if not token_key or not Token.objects.filter(key=token_key.split()[1]).exists():
+        response_content = "<html><body><p>Unauthorized</p></body></html>"
+        return HttpResponse(response_content, status=401)
 
     form = ExternalTransferForm(data=request.POST)
     if not form.is_valid():
@@ -396,7 +405,6 @@ def external_transfer(request: HttpRequest) -> HttpResponse:
                 {"form": form},
             )
         )
-
     try:
         source_account_id = os.environ["BANK_ACCOUNT_NUMBER"]
         destination_account_id = form.cleaned_data["destination_account"]
@@ -588,3 +596,16 @@ def customer_details(request: HttpRequest, pk: int) -> HttpResponse:
         return render(
             request, "best_bank_as/customers/customer_active_status.html", context
         )
+
+
+@api_view(["POST"])
+def auth_token(request: HttpRequest) -> Response:
+    username = request.data.get("username")
+    password = request.data.get("password")
+    user = authenticate(username=username, password=password)
+
+    if user:
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({"token": token.key})
+
+    return Response(status=400, data={"message": "Invalid Credentials"})

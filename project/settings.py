@@ -57,6 +57,8 @@ else:
 INSTALLED_APPS = [
     "django_rq",
     "corsheaders",
+    "rest_framework",
+    "rest_framework.authtoken",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -198,3 +200,9 @@ RQ_QUEUES = {
 
 
 AUTH_USER_MODEL = "best_bank_as.CustomUser"
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
