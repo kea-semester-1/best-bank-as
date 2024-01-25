@@ -163,7 +163,6 @@ class Ledger(base_model.BaseModel):
         }
         response = requests.post(login_url, data=credentials)
         response.raise_for_status()
-        print(response.json())
         return response.json()["token"]
 
     @classmethod
